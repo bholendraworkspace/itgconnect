@@ -1,4 +1,4 @@
-import type { Employee, Achievement, NewsArticle } from '@/lib/types';
+import type { Employee, Achievement, NewsArticle, SpecialAnnouncement, Idea, Recognition, Event } from '@/lib/types';
 import { subDays, format } from 'date-fns';
 
 const today = new Date();
@@ -12,6 +12,7 @@ export const employees: Employee[] = [
     profilePhotoUrl: "https://picsum.photos/seed/101/200/200",
     profilePhotoHint: "woman portrait",
     birthDate: format(today, 'yyyy-MM-dd'),
+    workAnniversary: format(subDays(today, 365 * 2), 'yyyy-MM-dd'),
     achievements: [
       { id: 'a1', employeeId: '1', title: 'Launched Project Phoenix', description: 'Successfully led the cross-functional team to launch the new platform ahead of schedule.', date: subDays(today, 10).toISOString() },
     ],
@@ -34,6 +35,7 @@ export const employees: Employee[] = [
     profilePhotoUrl: "https://picsum.photos/seed/103/200/200",
     profilePhotoHint: "woman smiling",
     birthDate: format(new Date(new Date().setFullYear(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() + 3)), 'yyyy-MM-dd'),
+    workAnniversary: format(today, 'yyyy-MM-dd'),
     achievements: [
       { id: 'a2', employeeId: '3', title: 'Exceeded Quarterly Sales Target', description: 'Achieved 150% of the sales target for Q2, setting a new company record.', date: subDays(today, 25).toISOString() },
     ],
@@ -106,5 +108,99 @@ export const news: NewsArticle[] = [
     author: 'Community Outreach Team',
   },
 ];
+
+export const specialAnnouncements: SpecialAnnouncement[] = [
+  {
+    id: 'sa1',
+    employeeId: '1',
+    employeeName: 'Sarah Chen',
+    employeePhotoUrl: "https://picsum.photos/seed/101/200/200",
+    type: 'car',
+    date: subDays(today, 2).toISOString(),
+  },
+  {
+    id: 'sa2',
+    employeeId: '2',
+    employeeName: 'David Lee',
+    employeePhotoUrl: "https://picsum.photos/seed/102/200/200",
+    type: 'kid',
+    date: subDays(today, 15).toISOString(),
+  },
+  {
+     id: 'sa3',
+     employeeId: '3',
+     employeeName: 'Maria Rodriguez',
+     employeePhotoUrl: "https://picsum.photos/seed/103/200/200",
+     type: 'work_anniversary',
+     date: today.toISOString(),
+  }
+];
+
+export const ideas: Idea[] = [
+  {
+    id: 'id1',
+    employeeId: '4',
+    employeeName: 'Shinji Ikari',
+    employeePhotoUrl: "https://picsum.photos/seed/104/200/200",
+    title: 'Implement 4-day work week trial',
+    description: 'A 6-month trial of a 4-day work week to improve employee wellbeing and productivity.',
+    votes: 42,
+    date: subDays(today, 5).toISOString(),
+  },
+  {
+     id: 'id2',
+     employeeId: '1',
+     employeeName: 'Sarah Chen',
+     employeePhotoUrl: "https://picsum.photos/seed/101/200/200",
+     title: 'Monthly Hackathons',
+     description: 'Dedicated time each month for cross-functional teams to build innovative internal tools.',
+     votes: 15,
+     date: subDays(today, 10).toISOString(),
+  }
+];
+
+export const recognitions: Recognition[] = [
+    {
+        id: 'rec1',
+        fromEmployeeId: '1',
+        fromEmployeeName: 'Sarah Chen',
+        toEmployeeId: '4',
+        toEmployeeName: 'Shinji Ikari',
+        toEmployeePhotoUrl: "https://picsum.photos/seed/104/200/200",
+        message: 'Great job refactoring the auth service! The code is much cleaner now.',
+        date: subDays(today, 1).toISOString(),
+    },
+    {
+        id: 'rec2',
+        fromEmployeeId: '4',
+        fromEmployeeName: 'Shinji Ikari',
+        toEmployeeId: '3',
+        toEmployeeName: 'Maria Rodriguez',
+        toEmployeePhotoUrl: "https://picsum.photos/seed/103/200/200",
+        message: 'Congratulations on exceeding your Q2 target! Incredible work.',
+        date: subDays(today, 3).toISOString(),
+    }
+];
+
+export const events: Event[] = [
+    {
+        id: 'ev1',
+        title: 'Q3 Townhall',
+        description: 'Quarterly company update and AMA with the leadership team.',
+        date: new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString(),
+        location: 'Main Auditorium / Zoom',
+        organizerId: '1',
+        rsvps: ['1', '2', '3', '4'],
+    },
+    {
+        id: 'ev2',
+        title: 'Engineering Meetup',
+        description: 'Monthly tech talk and knowledge sharing session.',
+        date: new Date(new Date().setDate(new Date().getDate() + 5)).toISOString(),
+        location: 'Conference Room B',
+        organizerId: '4',
+        rsvps: ['1', '4'],
+    }
+]
 
 export const currentUser = employees.find(e => e.id === '4');
