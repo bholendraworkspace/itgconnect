@@ -34,15 +34,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <AppNav />
         </SidebarContent>
         <SidebarFooter className="p-4">
-          <Link href="/profile" passHref legacyBehavior>
-            <Button
-              variant={pathname.startsWith("/profile") ? "secondary" : "ghost"}
-              className="w-full justify-start gap-2"
-            >
+          <Button
+            asChild
+            variant={pathname.startsWith("/profile") ? "secondary" : "ghost"}
+            className="w-full justify-start gap-2"
+          >
+            <Link href="/profile">
               <User />
               Profile
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </SidebarFooter>
       </Sidebar>
       <SidebarInset className="bg-background">
