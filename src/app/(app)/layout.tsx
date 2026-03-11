@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import {
   SidebarProvider,
   Sidebar,
@@ -14,10 +14,27 @@ import { AppNav } from "@/components/app-nav";
 import { Button } from "@/components/ui/button";
 import { Rocket, User } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useUser } from "@/firebase";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { user, isUserLoading } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isUserLoading, router]);
+
+  if (isUserLoading) {
+    return <div>Loading...</div>; // Or a more sophisticated loading screen
+  }
+
+  if (!user) {
+    return null; // Don't render the layout if not authenticated
+  }
 
   return (
     <SidebarProvider>
