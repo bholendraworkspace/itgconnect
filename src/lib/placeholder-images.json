@@ -1,3 +1,58 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "user-profile-1",
+      "description": "Profile picture for Sarah Chen",
+      "imageUrl": "https://picsum.photos/seed/101/200/200",
+      "imageHint": "woman portrait"
+    },
+    {
+      "id": "user-profile-2",
+      "description": "Profile picture for David Lee",
+      "imageUrl": "https://picsum.photos/seed/102/200/200",
+      "imageHint": "man portrait"
+    },
+    {
+      "id": "user-profile-3",
+      "description": "Profile picture for Maria Rodriguez",
+      "imageUrl": "https://picsum.photos/seed/103/200/200",
+      "imageHint": "woman smiling"
+    },
+    {
+      "id": "user-profile-4",
+      "description": "Profile picture for Shinji Ikari",
+      "imageUrl": "https://picsum.photos/seed/104/200/200",
+      "imageHint": "man professional"
+    },
+    {
+      "id": "achievement-1",
+      "description": "Image for project launch achievement",
+      "imageUrl": "https://picsum.photos/seed/201/400/250",
+      "imageHint": "team working"
+    },
+    {
+      "id": "achievement-2",
+      "description": "Image for sales milestone achievement",
+      "imageUrl": "https://picsum.photos/seed/202/400/250",
+      "imageHint": "business success"
+    },
+    {
+      "id": "achievement-3",
+      "description": "Image for innovation award",
+      "imageUrl": "https://picsum.photos/seed/203/400/250",
+      "imageHint": "lightbulb idea"
+    },
+    {
+      "id": "news-1",
+      "description": "Image for new office opening",
+      "imageUrl": "https://picsum.photos/seed/301/600/400",
+      "imageHint": "modern office"
+    },
+    {
+      "id": "news-2",
+      "description": "Image for charity event",
+      "imageUrl": "https://picsum.photos/seed/302/600/400",
+      "imageHint": "people volunteering"
+    }
+  ]
 }
