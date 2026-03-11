@@ -1,12 +1,16 @@
 {
   "hosting": {
-    "site": "studio-1240945126-b5f6c",
-    "source": ".",
+    "public": "out",
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
     ],
-    "appAssociation": "AUTO"
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
   }
 }
