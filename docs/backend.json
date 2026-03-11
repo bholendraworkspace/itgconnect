@@ -1,0 +1,381 @@
+{
+  "entities": {
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
+      "type": "object",
+      "description": "Represents an individual employee's profile within the ITG Connect application. Contains personal details and references to organizational data.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserProfile entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address, typically obtained from the authentication provider. (Relationship: Implicit 1:1 with Auth System)",
+          "format": "email"
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The first name of the user."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The last name of the user."
+        },
+        "profilePhotoUrl": {
+          "type": "string",
+          "description": "URL to the user's profile photo.",
+          "format": "uri"
+        },
+        "birthDate": {
+          "type": "string",
+          "description": "The user's date of birth, used for birthday notifications.",
+          "format": "date"
+        },
+        "departmentId": {
+          "type": "string",
+          "description": "Reference to the Department this user belongs to. (Relationship: Department 1:N UserProfile)"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the user profile was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the user profile was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "firstName",
+        "lastName",
+        "profilePhotoUrl",
+        "birthDate",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Department": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Department",
+      "type": "object",
+      "description": "Represents an organizational department within ITG Connect, allowing users to categorize themselves.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Department entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the department."
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of the department's function or responsibilities."
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "Achievement": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Achievement",
+      "type": "object",
+      "description": "Represents a specific accomplishment or recognition for an employee, displayed in the centralized feed and user profiles.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Achievement entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the UserProfile who achieved this. (Relationship: UserProfile 1:N Achievement)"
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the achievement."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the achievement."
+        },
+        "dateAwarded": {
+          "type": "string",
+          "description": "The date when the achievement was awarded or completed.",
+          "format": "date"
+        },
+        "category": {
+          "type": "string",
+          "description": "An optional category for the achievement (e.g., 'Professional', 'Teamwork', 'Innovation')."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the achievement record was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "title",
+        "description",
+        "dateAwarded",
+        "createdAt"
+      ]
+    },
+    "Wish": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Wish",
+      "type": "object",
+      "description": "Represents a personalized birthday wish sent from one employee to another.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Wish entity."
+        },
+        "senderId": {
+          "type": "string",
+          "description": "Reference to the UserProfile who sent the wish. (Relationship: UserProfile 1:N Wish as Sender)"
+        },
+        "recipientId": {
+          "type": "string",
+          "description": "Reference to the UserProfile who received the wish. (Relationship: UserProfile 1:N Wish as Recipient)"
+        },
+        "message": {
+          "type": "string",
+          "description": "The personalized message of the wish."
+        },
+        "sentAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the wish was sent.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "senderId",
+        "recipientId",
+        "message",
+        "sentAt"
+      ]
+    },
+    "NewsPost": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "NewsPost",
+      "type": "object",
+      "description": "Represents an internal news article or announcement posted by an administrator for the entire organization.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the NewsPost entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the news post."
+        },
+        "content": {
+          "type": "string",
+          "description": "The main content or body of the news post."
+        },
+        "postedByUserId": {
+          "type": "string",
+          "description": "Reference to the UserProfile (administrator) who posted the news. (Relationship: UserProfile 1:N NewsPost)"
+        },
+        "postedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the news post was published.",
+          "format": "date-time"
+        },
+        "isArchived": {
+          "type": "boolean",
+          "description": "Boolean flag indicating if the news post has been archived."
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "content",
+        "postedByUserId",
+        "postedAt"
+      ]
+    },
+    "Event": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Event",
+      "type": "object",
+      "description": "Represents a company event or activity, posted by an administrator for employees to browse.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Event entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title or name of the event."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the event."
+        },
+        "location": {
+          "type": "string",
+          "description": "The physical or virtual location where the event will take place."
+        },
+        "startTime": {
+          "type": "string",
+          "description": "The start date and time of the event.",
+          "format": "date-time"
+        },
+        "endTime": {
+          "type": "string",
+          "description": "The end date and time of the event.",
+          "format": "date-time"
+        },
+        "postedByUserId": {
+          "type": "string",
+          "description": "Reference to the UserProfile (administrator) who created the event. (Relationship: UserProfile 1:N Event)"
+        },
+        "postedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the event record was created or posted.",
+          "format": "date-time"
+        },
+        "rsvpRequired": {
+          "type": "boolean",
+          "description": "Boolean flag indicating whether an RSVP is required for the event."
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "description",
+        "location",
+        "startTime",
+        "endTime",
+        "postedByUserId",
+        "postedAt"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/user_profiles/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores individual employee profiles. The document ID `{userId}` corresponds to the authenticated user's UID, ensuring path-based ownership. Read access is global for authenticated users to facilitate interaction (e.g., sending wishes), while write access is restricted to the owner matching `request.auth.uid`.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user, matching request.auth.uid."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/departments/{departmentId}",
+        "definition": {
+          "entityName": "Department",
+          "schema": {
+            "$ref": "#/backend/entities/Department"
+          },
+          "description": "Defines organizational departments. This collection is globally readable by all authenticated users. Write access (create, update, delete) is restricted to administrators, managed through a separate role-based access control system (e.g., an `/roles_admin/{uid}` collection) to maintain authorization independence from this data structure.",
+          "params": [
+            {
+              "name": "departmentId",
+              "description": "The unique ID of the department."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/user_profiles/{userId}/achievements/{achievementId}",
+        "definition": {
+          "entityName": "Achievement",
+          "schema": {
+            "$ref": "#/backend/entities/Achievement"
+          },
+          "description": "Stores individual achievements for each user. The `{userId}` in the path identifies the owner, and the document includes a denormalized `userId` field (matching the path) for robust authorization independence. Write access is restricted to the owner (`request.auth.uid == userId`), while read access is global for authenticated users to support the organization-wide achievement feed via collection group queries.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user who owns the achievement."
+            },
+            {
+              "name": "achievementId",
+              "description": "The unique ID of the achievement."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/user_profiles/{recipientId}/received_wishes/{wishId}",
+        "definition": {
+          "entityName": "Wish",
+          "schema": {
+            "$ref": "#/backend/entities/Wish"
+          },
+          "description": "Stores personalized birthday wishes received by a specific user. The `{recipientId}` in the path identifies the recipient. The document includes denormalized `senderId` and `recipientId` fields to ensure authorization independence. Create access requires `request.auth.uid` to match the `senderId`. Read/list access is restricted to the recipient (`request.auth.uid == recipientId`). This structure supports QAPs for recipients to list their own wishes securely.",
+          "params": [
+            {
+              "name": "recipientId",
+              "description": "The unique ID of the user who is the recipient of the wish."
+            },
+            {
+              "name": "wishId",
+              "description": "The unique ID of the wish."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/news_posts/{newsPostId}",
+        "definition": {
+          "entityName": "NewsPost",
+          "schema": {
+            "$ref": "#/backend/entities/NewsPost"
+          },
+          "description": "Contains organization-wide news articles and announcements. This collection is globally readable by all authenticated users. Write access is restricted to administrators, relying on an external role check for authorization independence.",
+          "params": [
+            {
+              "name": "newsPostId",
+              "description": "The unique ID of the news post."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/events/{eventId}",
+        "definition": {
+          "entityName": "Event",
+          "schema": {
+            "$ref": "#/backend/entities/Event"
+          },
+          "description": "Stores company events and activities. This collection is globally readable by all authenticated users. Write access is restricted to administrators, relying on an external role check for authorization independence.",
+          "params": [
+            {
+              "name": "eventId",
+              "description": "The unique ID of the event."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure for 'ITG Connect' is designed with a strong emphasis on Authorization Independence, enabling robust and debuggable security rules. The core strategy revolves around denormalizing authorization context and employing structural segregation for different security postures.\n\n**Authorization Independence (CRITICAL):**\nThis design prioritizes avoiding hierarchical authorization dependencies that rely on `get()` calls in security rules. \n1.  For user-specific subcollections like `/user_profiles/{userId}/achievements/{achievementId}` and `/user_profiles/{recipientId}/received_wishes/{wishId}`, the relevant authorization fields (`userId`, `senderId`, `recipientId`) are explicitly denormalized into each document. This means rules can directly compare `request.auth.uid` with the document's own fields (e.g., `request.resource.data.userId`) and the path parameters (`userId`, `recipientId`) without needing to fetch parent documents. This allows for atomic write operations and simplifies rule logic considerably.\n2.  Global administrative roles are handled by checking a dedicated, flat collection (e.g., `/roles_admin/{uid}`). This `get()` operation for role checking is an acceptable exception as it is not a hierarchical dependency on parent *data* but a global permission check, maintaining atomicity for data operations.\n\n**QAPs (Rules are not Filters):**\nThe structure inherently supports secure `list` operations by ensuring that collection paths and document fields align with authorization requirements:\n1.  **Private User Data:** `/user_profiles/{userId}/achievements` allows a user to securely list their own achievements by matching `request.auth.uid` to the path's `userId`. Similarly, `/user_profiles/{recipientId}/received_wishes` enables recipients to list only their own wishes.\n2.  **Global Feeds/Shared Data:** Top-level collections like `/news_posts`, `/events`, and `/departments` are structured for global read access by all authenticated users, meaning `list` queries on these collections are inherently secure and efficient. For the \"Organization-Wide Achievement Feed,\" a collection group query on `achievements` is secured because each `Achievement` document includes its `userId`, allowing rules to grant read access to all authenticated users for all achievements, ensuring no private data is exposed inadvertently.\n\n**Structural Segregation:**\nDocuments with different security requirements are placed in distinct collections. For instance, `user_profiles` handles personal data, while `news_posts` and `events` are dedicated to organization-wide, administrator-managed content. This simplification of security posture per collection makes rules clearer and less prone to errors.\n\n**Access Modeling:**\n*   **Private Data:** `UserProfile` data is stored under `/user_profiles/{userId}`, establishing path-based ownership where `userId` matches `request.auth.uid`.\n*   **Hierarchical User Data:** For 1:N relationships like User to Achievement or User to Wish, the hierarchical path is continued (`/user_profiles/{userId}/achievements`, `/user_profiles/{recipientId}/received_wishes`), reinforcing ownership and specific recipient access.\n*   **Global/Admin Data:** `Departments`, `NewsPost`, and `Event` entities reside in top-level collections (`/departments`, `/news_posts`, `/events`) that are broadly readable and admin-writeable.\n\nThis holistic design ensures that security rules are simple, efficient, and easy to debug, minimizing potential vulnerabilities and supporting the application's scalability."
+  }
+}
