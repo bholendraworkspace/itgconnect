@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React from "react";
 import {
   SidebarProvider,
   Sidebar,
@@ -20,15 +20,9 @@ import { useFirestoreSeed, useEnsureEmployee } from "@/hooks/use-firestore-data"
 import { AppErrorBoundary } from "@/components/app-error-boundary";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
   const { user, isUserLoading } = useUser();
 
-  useEffect(() => {
-    if (!isUserLoading && !user) {
-      window.location.replace("/login");
-    }
-  }, [user, isUserLoading]); // eslint-disable-line react-hooks/exhaustive-deps
-
+  // Show loading while Firebase resolves auth state
   if (isUserLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -40,7 +34,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user) return null;
+  // Not authenticated — send to login (only fires once, no loop risk since
+  // window.location discards this entire JS context)
+  if (!user) {
+    window.location.replace("/login");
+    return null;
+  }
 
   return (
     <AppErrorBoundary>
