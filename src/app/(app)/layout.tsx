@@ -14,14 +14,14 @@ import { AppNav } from "@/components/app-nav";
 import { Button } from "@/components/ui/button";
 import { Rocket, User } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useUser } from "@/firebase";
 import { useFirestoreSeed, useEnsureEmployee } from "@/hooks/use-firestore-data";
+import { AppErrorBoundary } from "@/components/app-error-boundary";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, isUserLoading } = useUser();
-  const router = useRouter();
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -42,7 +42,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (!user) return null;
 
-  return <AppLayoutInner>{children}</AppLayoutInner>;
+  return (
+    <AppErrorBoundary>
+      <AppLayoutInner>{children}</AppLayoutInner>
+    </AppErrorBoundary>
+  );
 }
 
 function AppLayoutInner({ children }: { children: React.ReactNode }) {
