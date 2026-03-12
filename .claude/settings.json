@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(git add:*)",
-      "Bash(npx firebase-tools@latest deploy --only hosting,firestore --project studio-1240945126-b5f6c)"
+      "Bash(npx firebase-tools@latest deploy --only hosting,firestore --project studio-1240945126-b5f6c)",
+      "Bash(java -version)",
+      "Bash(brew install:*)",
+      "Bash(sudo ln:*)",
+      "Bash(export JAVA_HOME=/opt/homebrew/opt/openjdk@21)"
     ]
   }
 }
