@@ -4,22 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Rocket, Chrome, UserRound } from "lucide-react";
 import { useAuth } from "@/firebase";
 import { GoogleAuthProvider, signInWithPopup, signInAnonymously } from "firebase/auth";
-import { useRouter } from "next/navigation";
 import { useUser } from "@/firebase";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 export default function LoginPage() {
   const auth = useAuth();
-  const router = useRouter();
   const { user, isUserLoading } = useUser();
-  const navigating = useRef(false);
 
   useEffect(() => {
-    if (!isUserLoading && user && !navigating.current) {
-      navigating.current = true;
-      router.replace("/dashboard");
+    if (!isUserLoading && user) {
+      window.location.replace("/dashboard");
     }
-  }, [user, isUserLoading]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user, isUserLoading]);
 
   const handleSignIn = async () => {
     const provider = new GoogleAuthProvider();
