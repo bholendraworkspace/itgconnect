@@ -25,9 +25,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isUserLoading && !user) {
-      router.push("/login");
+      router.replace("/login");
     }
-  }, [user, isUserLoading, router]);
+  }, [user, isUserLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isUserLoading) {
     return (

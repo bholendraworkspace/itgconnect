@@ -6,24 +6,26 @@ import { useAuth } from "@/firebase";
 import { GoogleAuthProvider, signInWithPopup, signInAnonymously } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/firebase";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 export default function LoginPage() {
   const auth = useAuth();
   const router = useRouter();
   const { user, isUserLoading } = useUser();
+  const navigating = useRef(false);
 
   useEffect(() => {
-    if (!isUserLoading && user) {
-      router.push("/dashboard");
+    if (!isUserLoading && user && !navigating.current) {
+      navigating.current = true;
+      router.replace("/dashboard");
     }
-  }, [user, isUserLoading, router]);
+  }, [user, isUserLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      router.push("/dashboard");
+      // navigation handled by useEffect above
     } catch (error) {
       console.error("Error signing in with Google: ", error);
     }
@@ -32,7 +34,7 @@ export default function LoginPage() {
   const handleGuestSignIn = async () => {
     try {
       await signInAnonymously(auth);
-      router.push("/dashboard");
+      // navigation handled by useEffect above
     } catch (error) {
       console.error("Error signing in as guest: ", error);
     }
