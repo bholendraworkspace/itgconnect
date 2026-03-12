@@ -3,19 +3,27 @@
 import { Button } from "@/components/ui/button";
 import { Rocket, Chrome, UserRound } from "lucide-react";
 import { useAuth } from "@/firebase";
-import { GoogleAuthProvider, signInWithRedirect, signInAnonymously } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signInAnonymously } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/firebase";
+import { useEffect } from "react";
 
 export default function LoginPage() {
   const auth = useAuth();
   const router = useRouter();
   const { user, isUserLoading } = useUser();
 
+  useEffect(() => {
+    if (!isUserLoading && user) {
+      router.push("/dashboard");
+    }
+  }, [user, isUserLoading, router]);
+
   const handleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithRedirect(auth, provider);
+      await signInWithPopup(auth, provider);
+      router.push("/dashboard");
     } catch (error) {
       console.error("Error signing in with Google: ", error);
     }
@@ -41,10 +49,7 @@ export default function LoginPage() {
     );
   }
 
-  if (user) {
-    router.push("/dashboard");
-    return null;
-  }
+  if (user) return null;
 
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">

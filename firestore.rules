@@ -1,175 +1,71 @@
-/**
- * # Firestore Security Rules for ITG Connect
- *
- * ## Core Philosophy
- * This ruleset establishes a clear security boundary between personal user data and global organizational data.
- * The primary security model is user-ownership for personal content (profiles, achievements), where only the
- * authenticated owner can modify their data. For organization-wide content (news, events, departments), a
- * role-based access control (RBAC) model is used, restricting writes to designated administrators while
- * allowing all authenticated employees to read the data. This promotes a connected and informed workplace
- * while strictly protecting user-specific information.
- *
- * ## Data Structure
- * - `/user_profiles/{userId}`: Root collection for all user data. The document ID must match the authenticated user's UID.
- *   - `/achievements/{achievementId}`: A subcollection of a user's accomplishments.
- *   - `/received_wishes/{wishId}`: A private subcollection of birthday wishes a user has received.
- * - `/departments`, `/news_posts`, `/events`: Top-level collections for globally accessible, admin-managed data.
- *
- * ## Key Security Decisions
- * - **Authenticated Access**: All data access, both read and write, requires user authentication. There is no public, unauthenticated access.
- * - **Admin-Only Writes for Global Data**: All writes to `/departments`, `/news_posts`, and `/events` are restricted to users whose UID exists in a separate `/roles_admin/{uid}` collection. This decouples administrative permissions from the data itself.
- * - **User Profiles & Achievements are Publicly Readable**: Any authenticated user can read any other user's profile and achievements to foster community and enable features like an organization-wide achievement feed.
- * - **Wishes are Private**: Birthday wishes are strictly private. Only the recipient can read the wishes they have received. Wishes are immutable once created.
- *
- * ## Denormalization for Authorization
- * To create performant and secure rules, authorization-critical data is denormalized. For example, an `Achievement` document under `/user_profiles/{userId}/achievements/` contains a `userId` field. This avoids slow and costly `get()` calls to parent documents and allows for secure collection group queries.
- *
- * ## Structural Segregation
- * Data with different security needs is stored in separate collections. For instance, private `received_wishes` are in their own subcollection, separate from the more public `achievements` subcollection. This simplifies rules and prevents accidental data exposure.
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // -------------------------------------------------------------------------
-    // Helper Functions
-    // -------------------------------------------------------------------------
-
-    /**
-     * Checks if a user is authenticated.
-     */
-    function isSignedIn() {
+    // ── Helper ───────────────────────────────────────────────────────────────
+    function isAuth() {
       return request.auth != null;
     }
 
-    /**
-     * Checks if the currently authenticated user is the owner of a document,
-     * based on a provided userId.
-     */
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+    // ── Employees ────────────────────────────────────────────────────────────
+    // Any authenticated user can read all employees.
+    // Create: any authenticated user (needed for auto-create on first login + seeding).
+    // Update: only the document owner (uid == docId) can update their own profile.
+    match /employees/{employeeId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update: if isAuth() && request.auth.uid == employeeId;
+      allow delete: if false;
     }
 
-    /**
-     * Checks if the document being operated on already exists.
-     * CRITICAL for all update and delete operations.
-     */
-    function isExistingDoc() {
-      return resource != null;
+    // ── Achievements ─────────────────────────────────────────────────────────
+    match /achievements/{achievementId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update: if isAuth();
+      allow delete: if false;
     }
 
-    /**
-     * Checks if the authenticated user has administrative privileges.
-     * This is determined by the existence of a document with their UID in the
-     * `/roles_admin` collection.
-     */
-    function isAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
-    }
-
-    // -------------------------------------------------------------------------
-    // User Data Collections
-    // -------------------------------------------------------------------------
-
-    /**
-     * @description Controls access to user profile documents.
-     * @path /user_profiles/{userId}
-     * @allow (create) An authenticated user can create their own profile document.
-     * @deny (create) A user attempts to create a profile for another user's UID.
-     * @allow (get) Any authenticated user can read any other user's profile.
-     * @deny (update) A user attempts to modify another user's profile.
-     * @principle Establishes user ownership for writes, while allowing reads for social features.
-     */
-    match /user_profiles/{userId} {
-      allow get, list: if isSignedIn();
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isOwner(userId) && isExistingDoc() && request.resource.data.id == resource.data.id;
-      allow delete: if isOwner(userId) && isExistingDoc();
-    }
-
-    /**
-     * @description Secures a user's list of personal achievements.
-     * @path /user_profiles/{userId}/achievements/{achievementId}
-     * @allow (create) An authenticated user can create an achievement for themselves.
-     * @deny (create) A user tries to create an achievement for another person.
-     * @allow (get) Any authenticated user can read achievements for the organization-wide feed.
-     * @deny (delete) A user tries to delete another person's achievement.
-     * @principle Enforces user ownership for writes and validates relational integrity (userId field).
-     */
-    match /user_profiles/{userId}/achievements/{achievementId} {
-      allow get, list: if isSignedIn();
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isOwner(userId) && isExistingDoc() && request.resource.data.userId == resource.data.userId;
-      allow delete: if isOwner(userId) && isExistingDoc();
-    }
-
-    /**
-     * @description Secures private birthday wishes sent to a user.
-     * @path /user_profiles/{recipientId}/received_wishes/{wishId}
-     * @allow (create) Any authenticated user can send a wish to another user (the recipient).
-     * @deny (create) A user spoofs the senderId in the wish data.
-     * @allow (get, list) A user can read the wishes they have received.
-     * @deny (get, list) A user tries to read wishes sent to someone else.
-     * @deny (update, delete) Wishes are immutable and cannot be changed or deleted after being sent.
-     * @principle Restricts read access to the recipient and allows creation by any authenticated sender.
-     */
-    match /user_profiles/{recipientId}/received_wishes/{wishId} {
-      allow get, list: if isOwner(recipientId);
-      allow create: if isSignedIn() && request.resource.data.senderId == request.auth.uid && request.resource.data.recipientId == recipientId;
+    // ── Recognitions ─────────────────────────────────────────────────────────
+    match /recognitions/{recognitionId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
       allow update: if false;
       allow delete: if false;
     }
 
-    // -------------------------------------------------------------------------
-    // Global Read / Admin Write Collections
-    // -------------------------------------------------------------------------
-
-    /**
-     * @description Controls access to the list of company departments.
-     * @path /departments/{departmentId}
-     * @allow (get, list) Any authenticated user can read the list of departments.
-     * @deny (get, list) An unauthenticated user tries to read the department list.
-     * @allow (create, update, delete) An administrator can manage departments.
-     * @deny (create, update, delete) A non-administrative user attempts to modify a department.
-     * @principle Provides public read access to authenticated users with admin-only write controls.
-     */
-    match /departments/{departmentId} {
-      allow get, list: if isSignedIn();
-      allow create: if isAdmin();
-      allow update: if isAdmin() && isExistingDoc();
-      allow delete: if isAdmin() && isExistingDoc();
+    // ── Ideas ────────────────────────────────────────────────────────────────
+    // Any authenticated user can vote (update) or submit a new idea.
+    match /ideas/{ideaId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update: if isAuth();
+      allow delete: if false;
     }
 
-    /**
-     * @description Controls access to company news and announcements.
-     * @path /news_posts/{newsPostId}
-     * @allow (get, list) Any authenticated user can read news posts.
-     * @deny (create) A non-administrative user tries to post company news.
-     * @allow (create) An administrator can publish a new announcement.
-     * @deny (update) A regular employee attempts to edit a news post.
-     * @principle Provides public read access to authenticated users with admin-only write controls.
-     */
-    match /news_posts/{newsPostId} {
-      allow get, list: if isSignedIn();
-      allow create: if isAdmin() && request.resource.data.postedByUserId == request.auth.uid;
-      allow update: if isAdmin() && isExistingDoc();
-      allow delete: if isAdmin() && isExistingDoc();
-    }
-
-    /**
-     * @description Controls access to company events.
-     * @path /events/{eventId}
-     * @allow (get, list) Any authenticated user can view company events.
-     * @deny (create) A non-administrative user tries to create a company event.
-     * @allow (create) An administrator can post a new event for the company.
-     * @deny (delete) A regular employee attempts to cancel an event.
-     * @principle Provides public read access to authenticated users with admin-only write controls.
-     */
+    // ── Events ───────────────────────────────────────────────────────────────
+    // Any authenticated user can RSVP (update) or create an event.
     match /events/{eventId} {
-      allow get, list: if isSignedIn();
-      allow create: if isAdmin() && request.resource.data.postedByUserId == request.auth.uid;
-      allow update: if isAdmin() && isExistingDoc();
-      allow delete: if isAdmin() && isExistingDoc();
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update: if isAuth();
+      allow delete: if false;
+    }
+
+    // ── Special Announcements ────────────────────────────────────────────────
+    match /specialAnnouncements/{announcementId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ── News ─────────────────────────────────────────────────────────────────
+    match /news/{newsId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update: if isAuth();
+      allow delete: if false;
     }
 
   }

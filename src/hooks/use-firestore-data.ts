@@ -50,7 +50,11 @@ export function useEmployees() {
     return unsub;
   }, [db]);
 
-  return { employees, loading };
+  const updateEmployee = async (id: string, data: Partial<Omit<Employee, "id">>) => {
+    await updateDoc(doc(db, "employees", id), data);
+  };
+
+  return { employees, loading, updateEmployee };
 }
 
 // ─── Achievements ─────────────────────────────────────────────────────────────
@@ -194,6 +198,36 @@ export function useNews() {
   }, [db]);
 
   return { news, loading };
+}
+
+// ─── Ensure Employee Record ───────────────────────────────────────────────────
+// Creates a Firestore employee doc for the logged-in user if one doesn't exist
+export function useEnsureEmployee(user: { uid: string; email?: string | null; displayName?: string | null; photoURL?: string | null; isAnonymous?: boolean } | null) {
+  const db = useFirestore();
+  const { employees, loading } = useEmployees();
+
+  useEffect(() => {
+    if (loading || !user || user.isAnonymous) return;
+
+    const exists = employees.some((e) => e.email === user.email);
+    if (exists) return;
+
+    const newEmployee = {
+      name: user.displayName || user.email?.split("@")[0] || "New User",
+      email: user.email || "",
+      department: "",
+      profilePhotoUrl: user.photoURL || "",
+      profilePhotoHint: "person portrait",
+      birthDate: "1990-01-01",
+      achievements: [],
+      workAnniversary: new Date().toISOString().split("T")[0],
+    };
+
+    // Use the uid as the doc id so it's stable
+    import("firebase/firestore").then(({ setDoc, doc }) => {
+      setDoc(doc(db, "employees", user.uid), newEmployee, { merge: true }).catch(console.error);
+    });
+  }, [user, employees, loading, db]);
 }
 
 // ─── Seed ─────────────────────────────────────────────────────────────────────

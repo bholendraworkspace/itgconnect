@@ -16,7 +16,7 @@ import { Rocket, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useUser } from "@/firebase";
-import { useFirestoreSeed } from "@/hooks/use-firestore-data";
+import { useFirestoreSeed, useEnsureEmployee } from "@/hooks/use-firestore-data";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -49,6 +49,7 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user } = useUser();
   useFirestoreSeed(); // Seed Firestore with initial data on first load
+  useEnsureEmployee(user); // Create employee record for logged-in user if missing
 
   return (
     <SidebarProvider>
