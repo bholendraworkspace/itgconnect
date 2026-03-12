@@ -48,6 +48,7 @@ export type Idea = {
     title: string;
     description: string;
     votes: number;
+    votedBy: string[]; // array of user UIDs
     date: string; // ISO 8601
 };
 

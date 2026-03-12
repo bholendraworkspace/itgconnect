@@ -16,6 +16,7 @@ import { Rocket, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useUser } from "@/firebase";
+import { useFirestoreSeed } from "@/hooks/use-firestore-data";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -24,54 +25,71 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isUserLoading && !user) {
-      router.push('/login');
+      router.push("/login");
     }
   }, [user, isUserLoading, router]);
 
   if (isUserLoading) {
-    return <div>Loading...</div>; // Or a more sophisticated loading screen
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary to-accent animate-pulse shadow-lg shadow-primary/30" />
+          <p className="text-sm text-muted-foreground">Loading workspace…</p>
+        </div>
+      </div>
+    );
   }
 
-  if (!user) {
-    return null; // Don't render the layout if not authenticated
-  }
+  if (!user) return null;
+
+  return <AppLayoutInner>{children}</AppLayoutInner>;
+}
+
+function AppLayoutInner({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const { user } = useUser();
+  useFirestoreSeed(); // Seed Firestore with initial data on first load
 
   return (
     <SidebarProvider>
-      <Sidebar>
-        <SidebarHeader className="p-4">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="rounded-lg bg-gradient-to-r from-primary to-accent p-2">
-              <Rocket className="h-6 w-6 text-primary-foreground" />
+      <Sidebar className="border-r border-sidebar-border">
+        <SidebarHeader className="px-5 py-5">
+          <Link href="/dashboard" className="flex items-center gap-3 group">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent shadow-md shadow-primary/30 transition-transform group-hover:scale-105">
+              <Rocket className="h-5 w-5 text-white" />
             </div>
-            <h1 className="text-xl font-semibold tracking-tight">ITG Connect</h1>
+            <div>
+              <h1 className="text-base font-bold tracking-tight leading-none">ITG Connect</h1>
+              <p className="text-[10px] text-muted-foreground mt-0.5 leading-none">Internal Hub</p>
+            </div>
           </Link>
         </SidebarHeader>
-        <SidebarContent className="p-4">
+
+        <SidebarContent className="px-3 py-2">
           <AppNav />
         </SidebarContent>
-        <SidebarFooter className="p-4">
+
+        <SidebarFooter className="px-3 py-4 border-t border-sidebar-border">
           <Button
             asChild
             variant={pathname.startsWith("/profile") ? "secondary" : "ghost"}
-            className="w-full justify-start gap-2"
+            className="w-full justify-start gap-3 rounded-xl h-10 font-medium"
           >
             <Link href="/profile">
-              <User />
+              <User className="h-4 w-4" />
               Profile
             </Link>
           </Button>
         </SidebarFooter>
       </Sidebar>
+
       <SidebarInset className="bg-background">
-        <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-sm md:px-6">
+        <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-4 border-b border-border/60 bg-background/80 px-4 backdrop-blur-md md:px-6">
           <SidebarTrigger className="md:hidden" />
-          <div className="flex-1">
-            {/* Can be used for breadcrumbs or page titles */}
-          </div>
+          <div className="flex-1" />
           <UserNav />
         </header>
-        <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+        <main className="flex-1 p-4 md:p-6 lg:p-8 animate-fade-in">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );

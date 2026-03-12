@@ -20,16 +20,17 @@ export function AppNav() {
   const pathname = usePathname();
 
   return (
-    <SidebarMenu>
+    <SidebarMenu className="gap-1">
       {navItems.map((item) => (
         <SidebarMenuItem key={item.href}>
           <SidebarMenuButton
             asChild
             isActive={pathname.startsWith(item.href)}
             tooltip={item.label}
+            className="rounded-xl h-10 font-medium gap-3 transition-all duration-200"
           >
             <Link href={item.href}>
-              <item.icon />
+              <item.icon className="h-4 w-4" />
               <span>{item.label}</span>
             </Link>
           </SidebarMenuButton>
