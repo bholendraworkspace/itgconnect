@@ -5,16 +5,17 @@ import { Rocket, Chrome } from "lucide-react";
 import { useAuth } from "@/firebase";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { useUser } from "@/firebase";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
+
+let _redirecting = false;
 
 export default function LoginPage() {
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
-  const navigating = useRef(false);
 
   useEffect(() => {
-    if (!isUserLoading && user && !navigating.current) {
-      navigating.current = true;
+    if (!isUserLoading && user && !_redirecting) {
+      _redirecting = true;
       window.location.replace("/dashboard");
     }
   }, [user, isUserLoading]);
