@@ -80,11 +80,16 @@ export const BirthdayCard = ({ title, employees, variant }: BirthdayCardProps) =
 export function BirthdayCorner() {
   const { employees } = useEmployees();
   const today = new Date();
-  const parseDate = (dateStr: string) => parse(dateStr, "yyyy-MM-dd", new Date());
 
-  const birthdaysToday    = employees.filter((e) => isToday(parseDate(e.birthDate)));
-  const upcomingBirthdays = employees.filter((e) => { const b = parseDate(e.birthDate); return isFuture(b) && differenceInDays(b, today) <= 7; }).sort((a,b) => differenceInDays(parseDate(a.birthDate), parseDate(b.birthDate)));
-  const pastBirthdays     = employees.filter((e) => { const b = parseDate(e.birthDate); return isPast(b) && !isToday(b) && differenceInDays(today, b) <= 7; }).sort((a,b) => differenceInDays(parseDate(b.birthDate), parseDate(a.birthDate)));
+  // Normalize a stored birthDate to the current year so comparisons work year-round
+  const thisYearBirthday = (dateStr: string) => {
+    const parsed = parse(dateStr, "yyyy-MM-dd", new Date());
+    return new Date(today.getFullYear(), parsed.getMonth(), parsed.getDate());
+  };
+
+  const birthdaysToday    = employees.filter((e) => isToday(thisYearBirthday(e.birthDate)));
+  const upcomingBirthdays = employees.filter((e) => { const b = thisYearBirthday(e.birthDate); return isFuture(b) && differenceInDays(b, today) <= 7; }).sort((a, b) => differenceInDays(thisYearBirthday(a.birthDate), thisYearBirthday(b.birthDate)));
+  const pastBirthdays     = employees.filter((e) => { const b = thisYearBirthday(e.birthDate); return isPast(b) && !isToday(b) && differenceInDays(today, b) <= 7; }).sort((a, b) => differenceInDays(thisYearBirthday(b.birthDate), thisYearBirthday(a.birthDate)));
   const hasAny = birthdaysToday.length > 0 || upcomingBirthdays.length > 0 || pastBirthdays.length > 0;
 
   return (

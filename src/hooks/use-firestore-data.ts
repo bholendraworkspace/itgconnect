@@ -249,49 +249,48 @@ export function useFirestoreSeed() {
   useEffect(() => {
     async function seed() {
       try {
-        // Check if already seeded by looking at ideas collection
-        const snap = await getDocs(collection(db, "ideas"));
-        if (!snap.empty) return;
+        const [ideasSnap, empSnap] = await Promise.all([
+          getDocs(collection(db, "ideas")),
+          getDocs(collection(db, "employees")),
+        ]);
+
+        const existingEmpIds = new Set(empSnap.docs.map((d) => d.id));
+        const missingEmps = seedEmployees.filter((e) => !existingEmpIds.has(e.id));
+        const needsFullSeed = ideasSnap.empty;
+
+        if (missingEmps.length === 0 && !needsFullSeed) return;
 
         const batch = writeBatch(db);
 
-        // Seed employees
-        seedEmployees.forEach((emp) => {
+        // Always add any missing employees (handles new seed data additions)
+        missingEmps.forEach((emp) => {
           batch.set(doc(db, "employees", emp.id), emp);
         });
 
-        // Seed achievements
-        seedAchievements.forEach((ach) => {
-          batch.set(doc(db, "achievements", ach.id), ach);
-        });
-
-        // Seed recognitions
-        seedRecognitions.forEach((rec) => {
-          batch.set(doc(db, "recognitions", rec.id), rec);
-        });
-
-        // Seed ideas (add votedBy field)
-        seedIdeas.forEach((idea) => {
-          batch.set(doc(db, "ideas", idea.id), { ...idea, votedBy: [] });
-        });
-
-        // Seed events
-        seedEvents.forEach((ev) => {
-          batch.set(doc(db, "events", ev.id), ev);
-        });
-
-        // Seed special announcements
-        seedAnnouncements.forEach((ann) => {
-          batch.set(doc(db, "specialAnnouncements", ann.id), ann);
-        });
-
-        // Seed news
-        seedNews.forEach((article) => {
-          batch.set(doc(db, "news", article.id), article);
-        });
+        if (needsFullSeed) {
+          // Full first-time seed for all other collections
+          seedAchievements.forEach((ach) => {
+            batch.set(doc(db, "achievements", ach.id), ach);
+          });
+          seedRecognitions.forEach((rec) => {
+            batch.set(doc(db, "recognitions", rec.id), rec);
+          });
+          seedIdeas.forEach((idea) => {
+            batch.set(doc(db, "ideas", idea.id), { ...idea, votedBy: [] });
+          });
+          seedEvents.forEach((ev) => {
+            batch.set(doc(db, "events", ev.id), ev);
+          });
+          seedAnnouncements.forEach((ann) => {
+            batch.set(doc(db, "specialAnnouncements", ann.id), ann);
+          });
+          seedNews.forEach((article) => {
+            batch.set(doc(db, "news", article.id), article);
+          });
+        }
 
         await batch.commit();
-        console.log("Firestore seeded with initial data.");
+        console.log("Firestore seeded/updated with new data.");
       } catch (err) {
         console.error("Seeding failed:", err);
       }
