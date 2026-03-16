@@ -21,6 +21,7 @@ type BirthdayCardProps = {
   title: string;
   employees: Employee[];
   variant: "today" | "upcoming" | "past";
+  wide?: boolean;
 };
 
 const variantConfig = {
@@ -29,7 +30,7 @@ const variantConfig = {
   past:     { icon: <Gift className="h-4 w-4" />,        gradient: "from-violet-500 to-indigo-400" },
 };
 
-export const BirthdayCard = ({ title, employees, variant }: BirthdayCardProps) => {
+export const BirthdayCard = ({ title, employees, variant, wide }: BirthdayCardProps) => {
   const { toast } = useToast();
   const config = variantConfig[variant];
 
@@ -44,7 +45,7 @@ export const BirthdayCard = ({ title, employees, variant }: BirthdayCardProps) =
       </CardHeader>
       <CardContent className="px-4 sm:px-5 pb-4 sm:pb-5">
         {employees.length > 0 ? (
-          <div className="space-y-2 sm:space-y-3">
+          <div className={wide ? "grid sm:grid-cols-2 gap-2 sm:gap-3" : "space-y-2 sm:space-y-3"}>
             {employees.map((employee) => (
               <div key={employee.id} className="flex items-center justify-between rounded-xl bg-muted/40 px-3 py-2 sm:py-2.5">
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -101,7 +102,7 @@ export function BirthdayCorner() {
       <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
         {birthdaysToday.length > 0    && <BirthdayCard title="Today's Birthdays"    employees={birthdaysToday.slice(0, 5)}    variant="today" />}
         {upcomingBirthdays.length > 0 && <BirthdayCard title="Upcoming Birthdays"   employees={upcomingBirthdays.slice(0, 5)} variant="upcoming" />}
-        {pastBirthdays.length > 0     && <BirthdayCard title="Past Birthdays"       employees={pastBirthdays.slice(0, 5)}     variant="past" />}
+        {pastBirthdays.length > 0     && <div className="sm:col-span-2"><BirthdayCard title="Past Birthdays" employees={pastBirthdays.slice(0, 5)} variant="past" wide /></div>}
         {!hasAny && (
           <div className="col-span-full rounded-xl border-2 border-dashed border-border p-8 text-center">
             <Cake className="mx-auto h-8 w-8 text-muted-foreground/40 mb-2" />
