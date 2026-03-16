@@ -1,21 +1,25 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Rocket, Chrome, UserRound } from "lucide-react";
+import { Rocket, Chrome } from "lucide-react";
 import { useAuth } from "@/firebase";
-import { GoogleAuthProvider, signInWithPopup, signInAnonymously } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { useUser } from "@/firebase";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
+  const router = useRouter();
+  const navigating = useRef(false);
 
   useEffect(() => {
-    if (!isUserLoading && user) {
-      window.location.replace("/dashboard");
+    if (!isUserLoading && user && !navigating.current) {
+      navigating.current = true;
+      router.replace("/dashboard");
     }
-  }, [user, isUserLoading]);
+  }, [user, isUserLoading, router]);
 
   const handleSignIn = async () => {
     const provider = new GoogleAuthProvider();
@@ -24,15 +28,6 @@ export default function LoginPage() {
       // navigation handled by useEffect above
     } catch (error) {
       console.error("Error signing in with Google: ", error);
-    }
-  };
-
-  const handleGuestSignIn = async () => {
-    try {
-      await signInAnonymously(auth);
-      // navigation handled by useEffect above
-    } catch (error) {
-      console.error("Error signing in as guest: ", error);
     }
   };
 
@@ -47,7 +42,16 @@ export default function LoginPage() {
     );
   }
 
-  if (user) return null;
+  if (user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary to-accent animate-pulse shadow-lg shadow-primary/40" />
+          <p className="text-sm text-slate-400">Redirecting…</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
@@ -101,21 +105,6 @@ export default function LoginPage() {
             >
               <Chrome className="mr-2 h-5 w-5" />
               Sign in with Google
-            </Button>
-
-            <div className="flex items-center gap-3">
-              <div className="h-px flex-1 bg-white/10" />
-              <span className="text-xs text-slate-500">or</span>
-              <div className="h-px flex-1 bg-white/10" />
-            </div>
-
-            <Button
-              onClick={handleGuestSignIn}
-              variant="outline"
-              className="h-12 w-full rounded-xl border-white/15 bg-white/5 text-base font-medium text-slate-300 hover:bg-white/10 hover:text-white transition-all duration-200"
-            >
-              <UserRound className="mr-2 h-5 w-5" />
-              Continue as Guest
             </Button>
           </div>
 

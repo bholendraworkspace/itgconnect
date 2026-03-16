@@ -24,6 +24,7 @@ import type {
   Event,
   SpecialAnnouncement,
   NewsArticle,
+  Feedback,
 } from "@/lib/types";
 import {
   employees as seedEmployees,
@@ -228,6 +229,17 @@ export function useEnsureEmployee(user: { uid: string; email?: string | null; di
       setDoc(doc(db, "employees", user.uid), newEmployee, { merge: true }).catch(console.error);
     });
   }, [user, employees, loading, db]);
+}
+
+// ─── Feedback ─────────────────────────────────────────────────────────────────
+export function useFeedback() {
+  const db = useFirestore();
+
+  const submitFeedback = async (feedback: Omit<Feedback, "id">) => {
+    await addDoc(collection(db, "feedback"), feedback);
+  };
+
+  return { submitFeedback };
 }
 
 // ─── Seed ─────────────────────────────────────────────────────────────────────

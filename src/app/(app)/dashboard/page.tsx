@@ -16,7 +16,7 @@ function getGreeting() {
 
 export default function DashboardPage() {
   const { user } = useUser();
-  const displayName = user?.displayName?.split(" ")[0] || (user?.isAnonymous ? "Guest" : "there");
+  const displayName = user?.displayName?.split(" ")[0] || "there";
 
   return (
     <div className="space-y-8 animate-slide-up">
@@ -35,7 +35,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Birthday + Announcements */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 items-start">
         <div className="lg:col-span-2"><BirthdayCorner /></div>
         <div className="lg:col-span-1"><SpecialAnnouncementsCorner /></div>
       </div>

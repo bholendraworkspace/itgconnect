@@ -93,7 +93,7 @@ export function BirthdayCorner() {
         <h2 className="section-title">Birthday Corner</h2>
         <Badge variant="outline" className="text-xs"><Cake className="mr-1 h-3 w-3" /> This week</Badge>
       </div>
-      <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
         {birthdaysToday.length > 0    && <BirthdayCard title="Today's Birthdays"    employees={birthdaysToday}    variant="today" />}
         {upcomingBirthdays.length > 0 && <BirthdayCard title="Upcoming Birthdays"   employees={upcomingBirthdays} variant="upcoming" />}
         {pastBirthdays.length > 0     && <BirthdayCard title="Past Birthdays"       employees={pastBirthdays}     variant="past" />}

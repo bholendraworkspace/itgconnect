@@ -63,6 +63,16 @@ export type Recognition = {
     date: string; // ISO 8601
 };
 
+export type Feedback = {
+  id: string;
+  submitterId: string;
+  submitterName: string;
+  isAnonymous: boolean;
+  category: "suggestion" | "bug" | "praise" | "other";
+  message: string;
+  date: string; // ISO 8601
+};
+
 export type Event = {
     id: string;
     title: string;
