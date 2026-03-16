@@ -99,9 +99,9 @@ export function BirthdayCorner() {
         <Badge variant="outline" className="text-xs"><Cake className="mr-1 h-3 w-3" /> This week</Badge>
       </div>
       <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
-        {birthdaysToday.length > 0    && <BirthdayCard title="Today's Birthdays"    employees={birthdaysToday}    variant="today" />}
-        {upcomingBirthdays.length > 0 && <BirthdayCard title="Upcoming Birthdays"   employees={upcomingBirthdays} variant="upcoming" />}
-        {pastBirthdays.length > 0     && <BirthdayCard title="Past Birthdays"       employees={pastBirthdays}     variant="past" />}
+        {birthdaysToday.length > 0    && <BirthdayCard title="Today's Birthdays"    employees={birthdaysToday.slice(0, 5)}    variant="today" />}
+        {upcomingBirthdays.length > 0 && <BirthdayCard title="Upcoming Birthdays"   employees={upcomingBirthdays.slice(0, 5)} variant="upcoming" />}
+        {pastBirthdays.length > 0     && <BirthdayCard title="Past Birthdays"       employees={pastBirthdays.slice(0, 5)}     variant="past" />}
         {!hasAny && (
           <div className="col-span-full rounded-xl border-2 border-dashed border-border p-8 text-center">
             <Cake className="mx-auto h-8 w-8 text-muted-foreground/40 mb-2" />
