@@ -14,17 +14,15 @@ import {
 import { useAuth, useUser } from "@/firebase";
 import { User, LogOut, Settings } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 export function UserNav() {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
-  const router = useRouter();
 
   const handleSignOut = async () => {
     try {
       await auth.signOut();
-      router.push('/login');
+      window.location.replace("/login");
     } catch (error) {
       console.error("Error signing out: ", error);
     }

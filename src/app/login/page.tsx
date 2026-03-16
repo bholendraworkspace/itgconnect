@@ -6,25 +6,24 @@ import { useAuth } from "@/firebase";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { useUser } from "@/firebase";
 import { useEffect } from "react";
-
-let _redirecting = false;
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
+  const router = useRouter();
 
   useEffect(() => {
-    if (!isUserLoading && user && !_redirecting) {
-      _redirecting = true;
-      window.location.replace("/dashboard");
+    if (!isUserLoading && user) {
+      router.replace("/dashboard");
     }
-  }, [user, isUserLoading]);
+  }, [user, isUserLoading, router]);
 
   const handleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      // navigation handled by useEffect above
+      // onAuthStateChanged fires → useEffect navigates via router.replace
     } catch (error) {
       console.error("Error signing in with Google: ", error);
     }

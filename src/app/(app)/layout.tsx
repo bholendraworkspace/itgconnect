@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import {
   SidebarProvider,
   Sidebar,
@@ -17,10 +17,19 @@ import { AppErrorBoundary } from "@/components/app-error-boundary";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Rocket, Menu, X, LogOut } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
+  const router = useRouter();
 
-  if (isUserLoading) {
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.replace("/login");
+    }
+  }, [user, isUserLoading, router]);
+
+  if (isUserLoading || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -29,11 +38,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </div>
     );
-  }
-
-  if (!user) {
-    window.location.replace("/login");
-    return null;
   }
 
   return (
