@@ -34,8 +34,3 @@ jobs:
           projectId: studio-1240945126-b5f6c
           channelId: live
 
-      - name: Run PageSpeed Insights & save to Firestore
-        run: node .github/scripts/pagespeed.js
-        env:
-          GOOGLE_KEY: ${{ secrets.GOOGLE_KEY }}
-          SERVICE_KEY: ${{ secrets.SERVICE_KEY }}

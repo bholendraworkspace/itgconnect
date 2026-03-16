@@ -73,22 +73,6 @@ export type Feedback = {
   date: string; // ISO 8601
 };
 
-export type PageInsightScores = {
-  performance: number;
-  accessibility: number;
-  bestPractices: number;
-  seo: number;
-};
-
-export type PageInsight = {
-  id: string;
-  url: string;
-  date: string; // ISO 8601
-  commitSha: string;
-  mobile: PageInsightScores;
-  desktop: PageInsightScores;
-};
-
 export type Event = {
     id: string;
     title: string;

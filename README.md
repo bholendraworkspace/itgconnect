@@ -23,8 +23,7 @@ A modern internal employee hub built with Next.js, Firebase, and Tailwind CSS. D
 | **Events** | Create events and RSVP with real-time attendee count |
 | **News & Events** | Company announcements with featured images |
 | **Feedback** | Submit suggestions, bug reports, or praise — anonymously or named |
-| **Developer Tools** | JSON Structure Analyzer, JSON Viewer, HTML Viewer, Base64 Encoder, Timestamp Converter, Page Speed Report |
-| **Page Speed Insights** | Auto-captured after every deploy via CI/CD; scores stored in Firestore with full history |
+| **Developer Tools** | JSON Structure Analyzer, JSON Viewer, HTML Viewer, Base64 Encoder, Timestamp Converter |
 | **Profile** | User profile with achievements and stats |
 
 ---
@@ -84,14 +83,11 @@ npx firebase-tools@latest deploy --only hosting --project YOUR_PROJECT_ID
 
 Every push to `main` automatically builds and deploys via `.github/workflows/deploy.yml`.
 
-**Required GitHub secrets:**
+**Required GitHub secret:**
 
 | Secret | Value |
 |---|---|
 | `SERVICE_KEY` | Firebase service account JSON (Firebase Console → Project Settings → Service Accounts) |
-| `GOOGLE_KEY` | Google API key with PageSpeed Insights API enabled (Google Cloud Console) |
-
-After each deploy, the pipeline automatically runs Google PageSpeed Insights (mobile + desktop) against the live site and stores the results in Firestore `pageInsights`. Results are visible in **Developer Tools → Page Speed**.
 
 ---
 
@@ -139,4 +135,3 @@ src/
 | `specialAnnouncements` | Life milestone posts |
 | `news` | News articles |
 | `feedback` | User-submitted feedback |
-| `pageInsights` | PageSpeed Insights results — one document per CI deploy run |
