@@ -4,7 +4,7 @@
 
 const crypto = require("crypto");
 
-const SITE_URL = "https://studio-1240945126-b5f6c.web.app";
+const SITE_URL = "https://studio-1240945126-b5f6c.web.app/login";
 const PROJECT_ID = "studio-1240945126-b5f6c";
 const API_KEY = process.env.GOOGLE_KEY;
 const SERVICE_ACCOUNT = JSON.parse(process.env.SERVICE_KEY);
@@ -47,7 +47,7 @@ async function getAccessToken() {
 }
 
 // ── PageSpeed API ─────────────────────────────────────────────────────────────
-async function runPageSpeed(strategy) {
+async function runPageSpeed(strategy, attempt = 1) {
   const params = new URLSearchParams({
     url: SITE_URL,
     key: API_KEY,
@@ -55,13 +55,24 @@ async function runPageSpeed(strategy) {
   });
   CATEGORIES.forEach((c) => params.append("category", c));
 
-  console.log(`  → Running ${strategy}...`);
+  console.log(`  → Running ${strategy} (attempt ${attempt})...`);
   const res = await fetch(
     `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?${params}`
   );
   const data = await res.json();
 
-  if (data.error) throw new Error(`PageSpeed API error: ${JSON.stringify(data.error)}`);
+  if (data.error) {
+    const isTransient = data.error.errors?.some((e) =>
+      ["NO_FCP", "NO_LCP", "ERRORED_DOCUMENT_REQUEST"].includes(e.reason)
+    );
+    if (isTransient && attempt < 3) {
+      const wait = attempt * 10000;
+      console.log(`  ⚠ Transient error (${data.error.errors?.[0]?.reason}), retrying in ${wait / 1000}s...`);
+      await new Promise((r) => setTimeout(r, wait));
+      return runPageSpeed(strategy, attempt + 1);
+    }
+    throw new Error(`PageSpeed API error: ${JSON.stringify(data.error)}`);
+  }
 
   const cats = data.lighthouseResult.categories;
   return {

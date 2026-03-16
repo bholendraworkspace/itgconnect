@@ -140,7 +140,7 @@ export function PageSpeedReport() {
             <CardTitle>Page Speed Insights</CardTitle>
           </div>
           <a
-            href={`https://pagespeed.web.dev/analysis?url=${encodeURIComponent("https://studio-1240945126-b5f6c.web.app")}`}
+            href={`https://pagespeed.web.dev/analysis?url=${encodeURIComponent("https://studio-1240945126-b5f6c.web.app/login")}`}
             target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
           >
