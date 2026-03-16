@@ -6,7 +6,11 @@
       "Bash(java -version)",
       "Bash(brew install:*)",
       "Bash(sudo ln:*)",
-      "Bash(export JAVA_HOME=/opt/homebrew/opt/openjdk@21)"
+      "Bash(export JAVA_HOME=/opt/homebrew/opt/openjdk@21)",
+      "Bash(firebase deploy:*)",
+      "Bash(git rm:*)",
+      "Bash(npx next:*)",
+      "Bash(./node_modules/.bin/next build:*)"
     ]
   }
 }
