@@ -17,8 +17,6 @@ import { AppErrorBoundary } from "@/components/app-error-boundary";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Rocket, Menu, X, LogOut } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
 
@@ -71,14 +69,13 @@ function HamburgerButton() {
 function AppLayoutInner({ children }: { children: React.ReactNode }) {
   const { user } = useUser();
   const auth = useAuth();
-  const router = useRouter();
   useFirestoreSeed();
   useEnsureEmployee(user);
 
   const handleSignOut = async () => {
     try {
       await auth.signOut();
-      router.push("/login");
+      window.location.replace("/login");
     } catch (e) {
       console.error(e);
     }
