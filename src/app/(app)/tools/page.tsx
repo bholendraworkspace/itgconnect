@@ -4,6 +4,7 @@ import { HtmlViewer } from "@/components/tools/html-viewer";
 import { Base64Tool } from "@/components/tools/base64-tool";
 import { TimestampConverter } from "@/components/tools/timestamp-converter";
 import { ApiExplainer } from "@/components/tools/api-explainer";
+import { PageSpeedReport } from "@/components/tools/page-speed";
 
 export default function ToolsPage() {
   return (
@@ -16,12 +17,13 @@ export default function ToolsPage() {
       </div>
 
       <Tabs defaultValue="api-explainer" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-6">
           <TabsTrigger value="api-explainer">AI Explainer</TabsTrigger>
           <TabsTrigger value="json-viewer">JSON Viewer</TabsTrigger>
           <TabsTrigger value="html-viewer">HTML Viewer</TabsTrigger>
           <TabsTrigger value="base64">Base64</TabsTrigger>
           <TabsTrigger value="timestamp">Timestamp</TabsTrigger>
+          <TabsTrigger value="pagespeed">Page Speed</TabsTrigger>
         </TabsList>
         <TabsContent value="api-explainer">
           <ApiExplainer />
@@ -37,6 +39,9 @@ export default function ToolsPage() {
         </TabsContent>
         <TabsContent value="timestamp">
           <TimestampConverter />
+        </TabsContent>
+        <TabsContent value="pagespeed">
+          <PageSpeedReport />
         </TabsContent>
       </Tabs>
     </div>

@@ -25,6 +25,7 @@ import type {
   SpecialAnnouncement,
   NewsArticle,
   Feedback,
+  PageInsight,
 } from "@/lib/types";
 import {
   employees as seedEmployees,
@@ -229,6 +230,24 @@ export function useEnsureEmployee(user: { uid: string; email?: string | null; di
       setDoc(doc(db, "employees", user.uid), newEmployee, { merge: true }).catch(console.error);
     });
   }, [user, employees, loading, db]);
+}
+
+// ─── Page Insights ────────────────────────────────────────────────────────────
+export function usePageInsights() {
+  const db = useFirestore();
+  const [insights, setInsights] = useState<PageInsight[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const q = query(collection(db, "pageInsights"), orderBy("date", "desc"));
+    const unsub = onSnapshot(q, (snap) => {
+      setInsights(snap.docs.map((d) => ({ ...d.data(), id: d.id }) as PageInsight));
+      setLoading(false);
+    });
+    return unsub;
+  }, [db]);
+
+  return { insights, loading };
 }
 
 // ─── Feedback ─────────────────────────────────────────────────────────────────
