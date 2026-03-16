@@ -6,20 +6,18 @@ import { useAuth } from "@/firebase";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { useUser } from "@/firebase";
 import { useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
-  const router = useRouter();
   const navigating = useRef(false);
 
   useEffect(() => {
     if (!isUserLoading && user && !navigating.current) {
       navigating.current = true;
-      router.replace("/dashboard");
+      window.location.replace("/dashboard");
     }
-  }, [user, isUserLoading, router]);
+  }, [user, isUserLoading]);
 
   const handleSignIn = async () => {
     const provider = new GoogleAuthProvider();
@@ -30,28 +28,6 @@ export default function LoginPage() {
       console.error("Error signing in with Google: ", error);
     }
   };
-
-  if (isUserLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 rounded-full bg-gradient-to-r from-primary to-accent animate-pulse" />
-          <p className="text-muted-foreground text-sm">Loading…</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (user) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary to-accent animate-pulse shadow-lg shadow-primary/40" />
-          <p className="text-sm text-slate-400">Redirecting…</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
