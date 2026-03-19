@@ -35,46 +35,37 @@ export const BirthdayCard = ({ title, employees, variant, wide }: BirthdayCardPr
   const config = variantConfig[variant];
 
   return (
-    <Card className="card-hover overflow-hidden border-0 shadow-md">
-      <div className={`h-1 w-full bg-gradient-to-r ${config.gradient}`} />
-      <CardHeader className="flex flex-row items-center justify-between pb-3 pt-4 px-4 sm:px-5">
-        <CardTitle className="text-xs sm:text-sm font-semibold text-muted-foreground uppercase tracking-wider">{title}</CardTitle>
-        <div className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-gradient-to-br ${config.gradient} text-white shadow-sm`}>
-          {config.icon}
-        </div>
-      </CardHeader>
-      <CardContent className="px-4 sm:px-5 pb-4 sm:pb-5">
-        {employees.length > 0 ? (
-          <div className={wide ? "grid sm:grid-cols-2 gap-2 sm:gap-3" : "space-y-2 sm:space-y-3"}>
-            {employees.map((employee) => (
-              <div key={employee.id} className="flex items-center justify-between rounded-xl bg-muted/40 px-3 py-2 sm:py-2.5">
-                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                  <Avatar className="h-8 w-8 sm:h-9 sm:w-9 shrink-0 ring-2 ring-white shadow-sm">
-                    <AvatarImage src={employee.profilePhotoUrl} data-ai-hint={employee.profilePhotoHint} />
-                    <AvatarFallback className="text-xs font-bold">{employee.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm font-semibold leading-none truncate">{employee.name}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {format(parse(employee.birthDate, "yyyy-MM-dd", new Date()), "MMMM do")}
-                    </p>
-                  </div>
-                </div>
-                <Button size="sm" variant="ghost"
-                  className="h-7 sm:h-8 shrink-0 rounded-lg text-xs font-medium hover:bg-primary/10 hover:text-primary"
-                  onClick={() => toast({ title: "🎉 Wish Sent!", description: `Your birthday wish has been sent to ${employee.name}.` })}
-                >
-                  <Gift className="mr-1 h-3 w-3" />
-                  <span className="hidden sm:inline">Wish</span>
-                </Button>
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <div className={`h-2 w-2 rounded-full bg-gradient-to-r ${config.gradient}`} />
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{title}</span>
+      </div>
+      <div className="grid sm:grid-cols-2 gap-2">
+        {employees.map((employee) => (
+          <div key={employee.id} className="flex items-center justify-between rounded-xl bg-muted/40 px-3 py-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <Avatar className="h-8 w-8 shrink-0 ring-2 ring-white shadow-sm">
+                <AvatarImage src={employee.profilePhotoUrl} data-ai-hint={employee.profilePhotoHint} />
+                <AvatarFallback className="text-xs font-bold">{employee.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold leading-none truncate">{employee.name}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {format(parse(employee.birthDate, "yyyy-MM-dd", new Date()), "MMMM do")}
+                </p>
               </div>
-            ))}
+            </div>
+            <Button size="sm" variant="ghost"
+              className="h-7 shrink-0 rounded-lg text-xs font-medium hover:bg-primary/10 hover:text-primary"
+              onClick={() => toast({ title: "🎉 Wish Sent!", description: `Your birthday wish has been sent to ${employee.name}.` })}
+            >
+              <Gift className="mr-1 h-3 w-3" />
+              <span className="hidden sm:inline">Wish</span>
+            </Button>
           </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">No {title.toLowerCase()} this week.</p>
-        )}
-      </CardContent>
-    </Card>
+        ))}
+      </div>
+    </div>
   );
 };
 
@@ -94,23 +85,29 @@ export function BirthdayCorner() {
   const hasAny = birthdaysToday.length > 0 || upcomingBirthdays.length > 0 || pastBirthdays.length > 0;
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2 flex-wrap">
-        <h2 className="section-title">Birthday Corner</h2>
-        <Badge variant="outline" className="text-xs"><Cake className="mr-1 h-3 w-3" /> This week</Badge>
-      </div>
-      <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
-        {birthdaysToday.length > 0    && <BirthdayCard title="Today's Birthdays"    employees={birthdaysToday.slice(0, 5)}    variant="today" />}
-        {upcomingBirthdays.length > 0 && <BirthdayCard title="Upcoming Birthdays"   employees={upcomingBirthdays.slice(0, 5)} variant="upcoming" />}
-        {pastBirthdays.length > 0     && <div className="sm:col-span-2"><BirthdayCard title="Past Birthdays" employees={pastBirthdays.slice(0, 5)} variant="past" wide /></div>}
+    <Card className="card-hover overflow-hidden border-0 shadow-md">
+      <div className="h-1 w-full bg-gradient-to-r from-pink-500 to-rose-400" />
+      <CardHeader className="flex flex-row items-center justify-between pb-3 pt-4 px-4 sm:px-5">
+        <CardTitle className="text-sm font-semibold">Birthdays</CardTitle>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-[10px]"><Cake className="mr-1 h-3 w-3" />This week</Badge>
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-pink-500 to-rose-400 text-white shadow-sm">
+            <Cake className="h-4 w-4" />
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-3">
+        {birthdaysToday.length > 0    && <BirthdayCard title="Today"    employees={birthdaysToday.slice(0, 5)}    variant="today"    wide />}
+        {upcomingBirthdays.length > 0 && <BirthdayCard title="Upcoming" employees={upcomingBirthdays.slice(0, 5)} variant="upcoming" wide />}
+        {pastBirthdays.length > 0     && <BirthdayCard title="Recent"   employees={pastBirthdays.slice(0, 5)}    variant="past"     wide />}
         {!hasAny && (
-          <div className="col-span-full rounded-xl border-2 border-dashed border-border p-8 text-center">
-            <Cake className="mx-auto h-8 w-8 text-muted-foreground/40 mb-2" />
+          <div className="rounded-xl border-2 border-dashed border-border p-6 text-center">
+            <Cake className="mx-auto h-7 w-7 text-muted-foreground/30 mb-2" />
             <p className="text-sm text-muted-foreground">No birthdays this week.</p>
           </div>
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -148,10 +145,10 @@ export function SpecialAnnouncementsCorner() {
   };
 
   return (
-    <Card className="card-hover overflow-hidden border-0 shadow-md h-full">
+    <Card className="card-hover overflow-hidden border-0 shadow-md flex-1">
       <div className="h-1 w-full bg-gradient-to-r from-violet-500 to-primary" />
       <CardHeader className="pb-3 pt-4 px-4 sm:px-5 flex flex-row items-center justify-between">
-        <CardTitle className="section-title text-lg sm:text-xl">Special Announcements</CardTitle>
+        <CardTitle className="text-sm font-semibold">Special Announcements</CardTitle>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="rounded-xl bg-gradient-to-r from-violet-500 to-primary text-white hover:opacity-90 h-8">

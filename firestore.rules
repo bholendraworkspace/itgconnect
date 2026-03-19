@@ -8,9 +8,6 @@ service cloud.firestore {
     }
 
     // ── Employees ────────────────────────────────────────────────────────────
-    // Any authenticated user can read all employees.
-    // Create: any authenticated user (needed for auto-create on first login + seeding).
-    // Update: only the document owner (uid == docId) can update their own profile.
     match /employees/{employeeId} {
       allow read: if isAuth();
       allow create: if isAuth();
@@ -35,7 +32,6 @@ service cloud.firestore {
     }
 
     // ── Ideas ────────────────────────────────────────────────────────────────
-    // Any authenticated user can vote (update) or submit a new idea.
     match /ideas/{ideaId} {
       allow read: if isAuth();
       allow create: if isAuth();
@@ -44,7 +40,6 @@ service cloud.firestore {
     }
 
     // ── Events ───────────────────────────────────────────────────────────────
-    // Any authenticated user can RSVP (update) or create an event.
     match /events/{eventId} {
       allow read: if isAuth();
       allow create: if isAuth();
@@ -66,6 +61,23 @@ service cloud.firestore {
       allow create: if isAuth();
       allow update: if isAuth();
       allow delete: if false;
+    }
+
+    // ── Feedback ─────────────────────────────────────────────────────────────
+    match /feedback/{feedbackId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ── API Projects (Postman-style collections) ──────────────────────────────
+    // Any authenticated user can read, import, update and delete API collections.
+    match /apiProjects/{projectId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update: if isAuth();
+      allow delete: if isAuth();
     }
 
   }

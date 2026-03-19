@@ -5,9 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeftRight, Copy, Check, Trash2 } from "lucide-react";
+import { Copy, Check, Trash2, ArrowLeftRight } from "lucide-react";
 
-export function Base64Tool() {
+export function UrlEncoder() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [mode, setMode] = useState<"encode" | "decode">("encode");
@@ -18,10 +18,9 @@ export function Base64Tool() {
     setMode("encode");
     setError(null);
     try {
-      setOutput(btoa(unescape(encodeURIComponent(input))));
+      setOutput(encodeURIComponent(input));
     } catch {
-      setError("Could not encode — input may contain invalid characters.");
-      setOutput("");
+      setError("Could not encode input.");
     }
   };
 
@@ -29,10 +28,19 @@ export function Base64Tool() {
     setMode("decode");
     setError(null);
     try {
-      setOutput(decodeURIComponent(escape(atob(input))));
+      setOutput(decodeURIComponent(input));
     } catch {
-      setError("Could not decode — input is not valid Base64.");
-      setOutput("");
+      setError("Could not decode — input contains invalid percent-encoding.");
+    }
+  };
+
+  const handleEncodeFullUrl = () => {
+    setMode("encode");
+    setError(null);
+    try {
+      setOutput(encodeURI(input));
+    } catch {
+      setError("Could not encode URL.");
     }
   };
 
@@ -51,27 +59,24 @@ export function Base64Tool() {
 
   return (
     <Card className="border-0 shadow-xl rounded-2xl overflow-hidden">
-      <div className="h-1.5 w-full bg-gradient-to-r from-emerald-500 to-teal-500" />
+      <div className="h-1.5 w-full bg-gradient-to-r from-sky-500 to-blue-500" />
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base">Base64 Encoder / Decoder</CardTitle>
-          <div className="flex items-center gap-1.5">
-            <Badge variant={mode === "encode" ? "default" : "secondary"} className="text-[10px]">
-              {mode === "encode" ? "Encoding" : "Decoding"}
-            </Badge>
-            {input.length > 0 && (
-              <Badge variant="outline" className="text-[10px]">{input.length.toLocaleString()} chars</Badge>
-            )}
-          </div>
+          <CardTitle className="text-base">URL Encoder / Decoder</CardTitle>
+          <Badge variant={mode === "encode" ? "default" : "secondary"} className="text-[10px]">
+            {mode === "encode" ? "Encoding" : "Decoding"}
+          </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        {/* Toolbar */}
         <div className="flex items-center gap-2 flex-wrap">
-          <Button size="sm" onClick={handleEncode} className="h-7 text-xs gap-1.5 bg-emerald-600 hover:bg-emerald-700">
-            Encode
+          <Button size="sm" onClick={handleEncode} className="h-7 text-xs gap-1.5 bg-sky-600 hover:bg-sky-700">
+            Encode Component
           </Button>
-          <Button size="sm" variant="secondary" onClick={handleDecode} className="h-7 text-xs gap-1.5">
+          <Button size="sm" variant="secondary" onClick={handleEncodeFullUrl} className="h-7 text-xs">
+            Encode Full URL
+          </Button>
+          <Button size="sm" variant="secondary" onClick={handleDecode} className="h-7 text-xs">
             Decode
           </Button>
           <Button size="sm" variant="outline" onClick={handleSwap} disabled={!output} className="h-7 text-xs gap-1.5">
@@ -86,20 +91,16 @@ export function Base64Tool() {
           </Button>
         </div>
 
-        {/* Editor */}
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] items-start gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Input</p>
             <Textarea
-              placeholder="Type or paste text here..."
+              placeholder="https://example.com/path?q=hello world&lang=en"
               value={input}
               onChange={(e) => { setInput(e.target.value); setError(null); }}
-              className="h-64 font-mono text-xs rounded-xl resize-none"
+              className="h-48 font-mono text-xs rounded-xl resize-none"
               spellCheck={false}
             />
-          </div>
-          <div className="hidden md:flex items-center justify-center pt-6">
-            <ArrowLeftRight className="h-4 w-4 text-muted-foreground/40" />
           </div>
           <div className="space-y-1.5">
             <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Output</p>
@@ -107,14 +108,12 @@ export function Base64Tool() {
               placeholder="Result will appear here..."
               value={output}
               readOnly
-              className="h-64 font-mono text-xs bg-muted/30 rounded-xl resize-none"
+              className="h-48 font-mono text-xs bg-muted/30 rounded-xl resize-none"
             />
           </div>
         </div>
 
-        {error && (
-          <p className="text-xs text-destructive font-medium">{error}</p>
-        )}
+        {error && <p className="text-xs text-destructive font-medium">{error}</p>}
       </CardContent>
     </Card>
   );

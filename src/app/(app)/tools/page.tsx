@@ -1,45 +1,118 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+"use client";
+
+import { useState } from "react";
 import { JsonViewer } from "@/components/tools/json-viewer";
-import { HtmlViewer } from "@/components/tools/html-viewer";
 import { Base64Tool } from "@/components/tools/base64-tool";
 import { TimestampConverter } from "@/components/tools/timestamp-converter";
-import { ApiExplainer } from "@/components/tools/api-explainer";
+import { UrlEncoder } from "@/components/tools/url-encoder";
+import { UuidGenerator } from "@/components/tools/uuid-generator";
+import { JwtDecoder } from "@/components/tools/jwt-decoder";
+import { RegexTester } from "@/components/tools/regex-tester";
+import { ColorConverter } from "@/components/tools/color-converter";
+import { HashGenerator } from "@/components/tools/hash-generator";
+import { TextDiff } from "@/components/tools/text-diff";
+import { MarkdownPreview } from "@/components/tools/markdown-preview";
+import { LoremGenerator } from "@/components/tools/lorem-generator";
+import { CronParser } from "@/components/tools/cron-parser";
+import { ApiCollectionManager } from "@/components/tools/api-collection";
+import { cn } from "@/lib/utils";
+import {
+  Braces,
+  Binary,
+  Clock,
+  Link2,
+  Fingerprint,
+  KeyRound,
+  Regex,
+  Palette,
+  Hash,
+  Wrench,
+  FileText,
+  Type,
+  AlignLeft,
+  Timer,
+  BookOpen,
+} from "lucide-react";
+
+const tools = [
+  { id: "api-collection", label: "API Collections", icon: BookOpen, color: "from-violet-500 to-fuchsia-500" },
+  { id: "json-viewer", label: "JSON Formatter", icon: Braces, color: "from-blue-500 to-cyan-500" },
+  { id: "jwt-decoder", label: "JWT Decoder", icon: KeyRound, color: "from-yellow-500 to-amber-500" },
+  { id: "regex-tester", label: "Regex Tester", icon: Regex, color: "from-fuchsia-500 to-pink-500" },
+  { id: "base64", label: "Base64", icon: Binary, color: "from-emerald-500 to-teal-500" },
+  { id: "timestamp", label: "Timestamp", icon: Clock, color: "from-amber-500 to-orange-500" },
+  { id: "text-diff", label: "Text Diff", icon: FileText, color: "from-orange-500 to-red-500" },
+  { id: "url-encoder", label: "URL Encoder", icon: Link2, color: "from-sky-500 to-blue-500" },
+  { id: "uuid-generator", label: "UUID Generator", icon: Fingerprint, color: "from-indigo-500 to-violet-500" },
+  { id: "markdown-preview", label: "Markdown", icon: Type, color: "from-purple-500 to-indigo-500" },
+  { id: "cron-parser", label: "Cron Parser", icon: Timer, color: "from-cyan-500 to-blue-500" },
+  { id: "color-converter", label: "Color Converter", icon: Palette, color: "from-green-500 to-emerald-500" },
+  { id: "hash-generator", label: "Hash Generator", icon: Hash, color: "from-slate-500 to-zinc-500" },
+  { id: "lorem-generator", label: "Lorem Ipsum", icon: AlignLeft, color: "from-lime-500 to-green-500" },
+] as const;
+
+type ToolId = (typeof tools)[number]["id"];
+
+const toolComponents: Record<ToolId, React.FC> = {
+  "api-collection": ApiCollectionManager,
+  "json-viewer": JsonViewer,
+  "jwt-decoder": JwtDecoder,
+  "regex-tester": RegexTester,
+  base64: Base64Tool,
+  timestamp: TimestampConverter,
+  "text-diff": TextDiff,
+  "url-encoder": UrlEncoder,
+  "uuid-generator": UuidGenerator,
+  "markdown-preview": MarkdownPreview,
+  "cron-parser": CronParser,
+  "color-converter": ColorConverter,
+  "hash-generator": HashGenerator,
+  "lorem-generator": LoremGenerator,
+};
 
 export default function ToolsPage() {
+  const [activeTool, setActiveTool] = useState<ToolId>("api-collection");
+
+  const ActiveComponent = toolComponents[activeTool];
+
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Developer Tools</h1>
-        <p className="text-muted-foreground">
-          A collection of essential utilities to make your work easier.
+      <div className="space-y-1">
+        <div className="flex items-center gap-2">
+          <Wrench className="h-5 w-5 text-primary" />
+          <h1 className="text-2xl font-bold tracking-tight">Developer Tools</h1>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          All tools run client-side in your browser. Nothing leaves your machine.
         </p>
       </div>
 
-      <Tabs defaultValue="api-explainer" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
-          <TabsTrigger value="api-explainer">AI Explainer</TabsTrigger>
-          <TabsTrigger value="json-viewer">JSON Viewer</TabsTrigger>
-          <TabsTrigger value="html-viewer">HTML Viewer</TabsTrigger>
-          <TabsTrigger value="base64">Base64</TabsTrigger>
-          <TabsTrigger value="timestamp">Timestamp</TabsTrigger>
-        </TabsList>
-        <TabsContent value="api-explainer">
-          <ApiExplainer />
-        </TabsContent>
-        <TabsContent value="json-viewer">
-          <JsonViewer />
-        </TabsContent>
-        <TabsContent value="html-viewer">
-          <HtmlViewer />
-        </TabsContent>
-        <TabsContent value="base64">
-          <Base64Tool />
-        </TabsContent>
-        <TabsContent value="timestamp">
-          <TimestampConverter />
-        </TabsContent>
+      {/* Tool selector */}
+      <div className="flex flex-wrap gap-2">
+        {tools.map((tool) => {
+          const isActive = activeTool === tool.id;
+          return (
+            <button
+              key={tool.id}
+              onClick={() => setActiveTool(tool.id)}
+              className={cn(
+                "flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all duration-150",
+                isActive
+                  ? "border-primary bg-primary/5 shadow-sm"
+                  : "border-border/50 hover:border-primary/30 hover:bg-muted/50"
+              )}
+            >
+              <div className={cn("flex h-5 w-5 items-center justify-center rounded bg-gradient-to-br text-white", tool.color)}>
+                <tool.icon className="h-3 w-3" />
+              </div>
+              {tool.label}
+            </button>
+          );
+        })}
+      </div>
 
-      </Tabs>
+      {/* Active tool */}
+      <ActiveComponent />
     </div>
   );
 }

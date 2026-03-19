@@ -82,3 +82,38 @@ export type Event = {
     organizerId: string;
     rsvps: string[]; // array of employee IDs
 };
+
+// ─── API Collections ─────────────────────────────────────────────────────────
+
+export type ApiHeader = {
+  key: string;
+  value: string;
+};
+
+export type ApiEndpoint = {
+  name: string;
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "HEAD" | "OPTIONS";
+  url: string;
+  description: string;
+  headers: ApiHeader[];
+  body: string;
+  auth: string;
+};
+
+export type ApiFolder = {
+  name: string;
+  description: string;
+  endpoints: ApiEndpoint[];
+};
+
+export type ApiProject = {
+  id: string;
+  name: string;
+  description: string;
+  baseUrl: string;
+  folders: ApiFolder[];
+  endpoints: ApiEndpoint[]; // root-level endpoints not in folders
+  importedAt: string; // ISO 8601
+  importedBy: string; // user UID
+  importedByName: string;
+};
