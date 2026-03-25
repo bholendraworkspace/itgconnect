@@ -32,7 +32,6 @@ import {
   ChevronDown,
   Trash2,
   Search,
-  Sparkles,
   Loader2,
   Globe,
   Copy,
@@ -40,6 +39,9 @@ import {
   Plus,
   BookOpen,
   AlertCircle,
+  Clock,
+  KeyRound,
+  Pencil,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
@@ -146,52 +148,6 @@ function parsePostmanCollection(json: any): Omit<ApiProject, "id" | "importedAt"
   return { name, description, baseUrl, folders, endpoints };
 }
 
-// ─── AI Explain (calls Genkit REST endpoint at localhost:3400 in dev) ────────
-// In production (static export) there is no server — AI requires genkit:dev.
-async function explainEndpointWithAI(endpoint: ApiEndpoint): Promise<string> {
-  const context = JSON.stringify({
-    name: endpoint.name,
-    method: endpoint.method,
-    url: endpoint.url,
-    description: endpoint.description,
-    headers: endpoint.headers,
-    body: endpoint.body,
-    auth: endpoint.auth,
-  }, null, 2);
-
-  try {
-    const res = await fetch("http://localhost:3400/explainApiResponseFlow", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ data: { apiResponse: context } }),
-    });
-
-    if (!res.ok) throw new Error(`Genkit responded ${res.status}`);
-
-    const json = await res.json();
-    const result = json.result ?? json;
-
-    let explanation = `## ${result.summary ?? "Summary unavailable"}\n\n`;
-    if (result.keyFieldsExplanation?.length) {
-      explanation += "### Key Fields\n";
-      result.keyFieldsExplanation.forEach((f: { fieldName: string; description: string; exampleValue?: string | null }) => {
-        explanation += `- **${f.fieldName}**: ${f.description}`;
-        if (f.exampleValue) explanation += ` (e.g. \`${f.exampleValue}\`)`;
-        explanation += "\n";
-      });
-    }
-    if (result.suggestions?.length) {
-      explanation += "\n### Suggestions\n";
-      result.suggestions.forEach((s: string) => {
-        explanation += `- ${s}\n`;
-      });
-    }
-    return explanation;
-  } catch {
-    return `**AI explanation requires the Genkit dev server.**\n\nRun \`npm run genkit:dev\` in a separate terminal, then try again.\n\nGenkit must be running at \`http://localhost:3400\`.`;
-  }
-}
-
 // ─── Add Manual API Dialog ──────────────────────────────────────────────────
 function AddManualApiDialog({
   onAdd,
@@ -267,19 +223,123 @@ function AddManualApiDialog({
   );
 }
 
-// ─── Endpoint Detail Panel ──────────────────────────────────────────────────
-function EndpointDetail({ endpoint }: { endpoint: ApiEndpoint }) {
-  const [aiExplanation, setAiExplanation] = useState<string | null>(null);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [copied, setCopied] = useState<string | null>(null);
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function parseUrl(raw: string) {
+  try {
+    const u = new URL(raw.startsWith("http") ? raw : `https://${raw}`);
+    const pathParams = (u.pathname.match(/\{[^}]+\}|:[a-zA-Z_]+/g) || []).map((p) =>
+      p.startsWith(":") ? p.slice(1) : p.slice(1, -1)
+    );
+    const queryParams = Array.from(u.searchParams.entries()).map(([key, value]) => ({ key, value }));
+    return { base: `${u.protocol}//${u.host}`, path: u.pathname, pathParams, queryParams };
+  } catch {
+    return { base: "", path: raw, pathParams: [] as string[], queryParams: [] as { key: string; value: string }[] };
+  }
+}
 
-  const handleExplain = async () => {
-    setAiLoading(true);
-    setAiExplanation(null);
-    const explanation = await explainEndpointWithAI(endpoint);
-    setAiExplanation(explanation);
-    setAiLoading(false);
+function formatJson(raw: string): string {
+  try {
+    return JSON.stringify(JSON.parse(raw), null, 2);
+  } catch {
+    return raw;
+  }
+}
+
+/** Renders a markdown-like description into structured React elements */
+function RenderedDescription({ text }: { text: string }) {
+  const lines = text.split("\n");
+  const elements: React.ReactNode[] = [];
+  let listItems: string[] = [];
+
+  const flushList = () => {
+    if (listItems.length > 0) {
+      elements.push(
+        <ul key={`ul-${elements.length}`} className="space-y-1 pl-4">
+          {listItems.map((item, i) => (
+            <li key={i} className="text-xs text-muted-foreground leading-relaxed list-disc">
+              <InlineMarkdown text={item} />
+            </li>
+          ))}
+        </ul>
+      );
+      listItems = [];
+    }
   };
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) { flushList(); continue; }
+
+    // Headers
+    const h1 = line.match(/^#\s+(.+)$/);
+    const h2 = line.match(/^##\s+(.+)$/);
+    const h3 = line.match(/^###\s+(.+)$/);
+
+    if (h3) {
+      flushList();
+      elements.push(<h4 key={`h3-${i}`} className="text-xs font-bold mt-3 mb-1"><InlineMarkdown text={h3[1]} /></h4>);
+    } else if (h2) {
+      flushList();
+      elements.push(<h3 key={`h2-${i}`} className="text-sm font-bold mt-4 mb-1.5 border-b border-border/40 pb-1"><InlineMarkdown text={h2[1]} /></h3>);
+    } else if (h1) {
+      flushList();
+      elements.push(<h2 key={`h1-${i}`} className="text-sm font-bold mt-3 mb-1"><InlineMarkdown text={h1[1]} /></h2>);
+    } else if (line.startsWith("- ")) {
+      listItems.push(line.slice(2));
+    } else {
+      flushList();
+      elements.push(<p key={`p-${i}`} className="text-xs text-muted-foreground leading-relaxed"><InlineMarkdown text={line} /></p>);
+    }
+  }
+  flushList();
+
+  return <div className="space-y-1">{elements}</div>;
+}
+
+/** Renders inline markdown: **bold**, `code`, *italic* */
+function InlineMarkdown({ text }: { text: string }) {
+  const parts: React.ReactNode[] = [];
+  // Split on **bold**, `code`, *italic*
+  const regex = /(\*\*(.+?)\*\*|`([^`]+)`|\*(.+?)\*)/g;
+  let lastIndex = 0;
+  let match;
+  let key = 0;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(<span key={key++}>{text.slice(lastIndex, match.index)}</span>);
+    }
+    if (match[2]) {
+      parts.push(<strong key={key++} className="font-semibold text-foreground">{match[2]}</strong>);
+    } else if (match[3]) {
+      parts.push(<code key={key++} className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono text-primary/80">{match[3]}</code>);
+    } else if (match[4]) {
+      parts.push(<em key={key++}>{match[4]}</em>);
+    }
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < text.length) {
+    parts.push(<span key={key++}>{text.slice(lastIndex)}</span>);
+  }
+  return <>{parts}</>;
+}
+
+// ─── Section wrapper ─────────────────────────────────────────────────────────
+function DetailSection({ title, children, actions }: { title: string; children: React.ReactNode; actions?: React.ReactNode }) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{title}</p>
+        {actions}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+// ─── Endpoint Detail Panel ──────────────────────────────────────────────────
+function EndpointDetail({ endpoint, onEdit, onDelete }: { endpoint: ApiEndpoint; onEdit?: () => void; onDelete?: () => void }) {
+  const [copied, setCopied] = useState<string | null>(null);
 
   const handleCopy = async (text: string, key: string) => {
     await navigator.clipboard.writeText(text);
@@ -287,85 +347,154 @@ function EndpointDetail({ endpoint }: { endpoint: ApiEndpoint }) {
     setTimeout(() => setCopied(null), 2000);
   };
 
+  const CopyBtn = ({ text, id }: { text: string; id: string }) => (
+    <button onClick={() => handleCopy(text, id)} className="text-muted-foreground hover:text-foreground transition-colors">
+      {copied === id ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+    </button>
+  );
+
+  const parsed = parseUrl(endpoint.url);
+  const formattedBody = endpoint.body ? formatJson(endpoint.body) : "";
+
   return (
     <div className="space-y-4">
-      {/* Method + URL */}
-      <div className="flex items-center gap-2">
-        <Badge className={cn("text-xs font-bold text-white shrink-0", METHOD_COLORS[endpoint.method])}>
-          {endpoint.method}
-        </Badge>
-        <code className="text-sm font-mono flex-1 truncate">{endpoint.url}</code>
-        <button onClick={() => handleCopy(endpoint.url, "url")} className="shrink-0 text-muted-foreground hover:text-foreground">
-          {copied === "url" ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-        </button>
-      </div>
-
-      {/* Description */}
-      {endpoint.description && (
-        <p className="text-sm text-muted-foreground leading-relaxed">{endpoint.description}</p>
-      )}
-
-      {/* Headers */}
-      {endpoint.headers.length > 0 && (
-        <div className="space-y-1.5">
-          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Headers</p>
-          <div className="rounded-lg border divide-y divide-border/30">
-            {endpoint.headers.map((h, i) => (
-              <div key={i} className="flex items-center gap-2 px-3 py-1.5 text-xs">
-                <code className="font-mono font-semibold text-primary/80">{h.key}</code>
-                <span className="text-muted-foreground">:</span>
-                <code className="font-mono text-muted-foreground truncate">{h.value}</code>
-              </div>
-            ))}
-          </div>
+      {/* ── Header: Method + Name + Actions ── */}
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <Badge className={cn("text-[10px] font-bold text-white shrink-0 px-2 py-0.5", METHOD_COLORS[endpoint.method])}>
+            {endpoint.method}
+          </Badge>
+          <h3 className="text-sm font-bold truncate">{endpoint.name}</h3>
         </div>
-      )}
-
-      {/* Body */}
-      {endpoint.body && (
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Request Body</p>
-            <button onClick={() => handleCopy(endpoint.body, "body")} className="text-muted-foreground hover:text-foreground">
-              {copied === "body" ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+        <div className="flex items-center gap-1 shrink-0">
+          {onEdit && (
+            <button onClick={onEdit} className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors" title="Edit endpoint">
+              <Pencil className="h-3.5 w-3.5" />
             </button>
-          </div>
-          <ScrollArea className="max-h-40 rounded-lg border bg-muted/20 p-3">
-            <pre className="text-xs font-mono whitespace-pre-wrap">{endpoint.body}</pre>
-          </ScrollArea>
+          )}
+          {onDelete && (
+            <button onClick={onDelete} className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors" title="Delete endpoint">
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
-      )}
-
-      {/* Auth */}
-      {endpoint.auth && (
-        <div className="flex items-center gap-2">
-          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Auth:</p>
-          <Badge variant="outline" className="text-[10px]">{endpoint.auth}</Badge>
-        </div>
-      )}
+      </div>
 
       <Separator />
 
-      {/* AI Explain */}
-      <div className="space-y-2">
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={handleExplain}
-          disabled={aiLoading}
-          className="h-8 text-xs gap-1.5 border-primary/30 hover:bg-primary/5"
-        >
-          {aiLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3 text-primary" />}
-          {aiLoading ? "Analyzing..." : "AI Explain This API"}
-        </Button>
-        {aiExplanation && (
-          <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
-            <div className="prose prose-sm max-w-none text-sm leading-relaxed whitespace-pre-wrap">
-              {aiExplanation}
-            </div>
+      {/* ── Description / API Documentation ── */}
+      {endpoint.description && (
+        <DetailSection title="Description">
+          <ScrollArea className="max-h-60 rounded-lg border bg-muted/10 p-3 overflow-auto">
+            <RenderedDescription text={endpoint.description} />
+          </ScrollArea>
+        </DetailSection>
+      )}
+
+      {/* ── URL ── */}
+      <DetailSection
+        title="Request URL"
+        actions={<CopyBtn text={endpoint.url} id="url" />}
+      >
+        <div className="rounded-lg border bg-muted/20 px-3 py-2 font-mono text-xs break-all">
+          {parsed.base && <span className="text-muted-foreground">{parsed.base}</span>}
+          <span className="text-foreground font-semibold">{parsed.path}</span>
+        </div>
+      </DetailSection>
+
+      {/* ── Path Parameters ── */}
+      {parsed.pathParams.length > 0 && (
+        <DetailSection title="Path Parameters">
+          <div className="rounded-lg border overflow-hidden">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="bg-muted/30 border-b">
+                  <th className="text-left px-3 py-1.5 font-semibold text-muted-foreground">Parameter</th>
+                  <th className="text-left px-3 py-1.5 font-semibold text-muted-foreground">Type</th>
+                </tr>
+              </thead>
+              <tbody>
+                {parsed.pathParams.map((p, i) => (
+                  <tr key={i} className="border-b last:border-0">
+                    <td className="px-3 py-1.5 font-mono text-primary/80">{p}</td>
+                    <td className="px-3 py-1.5 text-muted-foreground">string</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        )}
-      </div>
+        </DetailSection>
+      )}
+
+      {/* ── Query Parameters ── */}
+      {parsed.queryParams.length > 0 && (
+        <DetailSection title="Query Parameters">
+          <div className="rounded-lg border overflow-hidden">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="bg-muted/30 border-b">
+                  <th className="text-left px-3 py-1.5 font-semibold text-muted-foreground">Key</th>
+                  <th className="text-left px-3 py-1.5 font-semibold text-muted-foreground">Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                {parsed.queryParams.map((q, i) => (
+                  <tr key={i} className="border-b last:border-0">
+                    <td className="px-3 py-1.5 font-mono text-primary/80">{q.key}</td>
+                    <td className="px-3 py-1.5 font-mono text-muted-foreground truncate max-w-[200px]">{q.value}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </DetailSection>
+      )}
+
+      {/* ── Headers ── */}
+      {endpoint.headers.length > 0 && (
+        <DetailSection title="Headers">
+          <div className="rounded-lg border overflow-hidden">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="bg-muted/30 border-b">
+                  <th className="text-left px-3 py-1.5 font-semibold text-muted-foreground">Key</th>
+                  <th className="text-left px-3 py-1.5 font-semibold text-muted-foreground">Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                {endpoint.headers.map((h, i) => (
+                  <tr key={i} className="border-b last:border-0">
+                    <td className="px-3 py-1.5 font-mono font-semibold text-primary/80 whitespace-nowrap">{h.key}</td>
+                    <td className="px-3 py-1.5 font-mono text-muted-foreground truncate max-w-[250px]">{h.value}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </DetailSection>
+      )}
+
+      {/* ── Auth ── */}
+      {endpoint.auth && (
+        <DetailSection title="Authentication">
+          <div className="flex items-center gap-2 rounded-lg border bg-muted/20 px-3 py-2">
+            <KeyRound className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+            <span className="text-xs font-medium">{endpoint.auth}</span>
+          </div>
+        </DetailSection>
+      )}
+
+      {/* ── Request Body ── */}
+      {formattedBody && (
+        <DetailSection
+          title="Request Body"
+          actions={<CopyBtn text={formattedBody} id="body" />}
+        >
+          <div className="max-h-52 overflow-y-auto rounded-lg border bg-slate-950 dark:bg-slate-900 p-3">
+            <pre className="text-xs font-mono leading-relaxed whitespace-pre-wrap break-all text-slate-300">{formattedBody}</pre>
+          </div>
+        </DetailSection>
+      )}
     </div>
   );
 }
@@ -382,6 +511,7 @@ export function ApiCollectionManager() {
   const [searchQuery, setSearchQuery] = useState("");
   const [importError, setImportError] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
+  const [editingEndpoint, setEditingEndpoint] = useState<ApiEndpoint | null>(null);
 
   // Real-time Firestore listener
   useEffect(() => {
@@ -449,6 +579,8 @@ export function ApiCollectionManager() {
     });
   }, [db, projects]);
 
+  const currentProject = projects.find((p) => p.id === activeProject);
+
   // Delete project
   const handleDelete = async (projectId: string) => {
     await deleteDoc(doc(db, "apiProjects", projectId));
@@ -458,6 +590,33 @@ export function ApiCollectionManager() {
     }
   };
 
+  // Delete a single endpoint from a project
+  const handleDeleteEndpoint = useCallback(async (endpoint: ApiEndpoint) => {
+    if (!currentProject) return;
+    const { updateDoc } = await import("firebase/firestore");
+    const updatedEndpoints = currentProject.endpoints.filter((ep) => ep !== endpoint);
+    const updatedFolders = currentProject.folders.map((f) => ({
+      ...f,
+      endpoints: f.endpoints.filter((ep) => ep !== endpoint),
+    }));
+    await updateDoc(doc(db, "apiProjects", currentProject.id), { endpoints: updatedEndpoints, folders: updatedFolders });
+    setActiveEndpoint(null);
+  }, [db, currentProject]);
+
+  // Update a single endpoint in a project
+  const handleUpdateEndpoint = useCallback(async (oldEp: ApiEndpoint, newEp: ApiEndpoint) => {
+    if (!currentProject) return;
+    const { updateDoc } = await import("firebase/firestore");
+    const updatedEndpoints = currentProject.endpoints.map((ep) => ep === oldEp ? newEp : ep);
+    const updatedFolders = currentProject.folders.map((f) => ({
+      ...f,
+      endpoints: f.endpoints.map((ep) => ep === oldEp ? newEp : ep),
+    }));
+    await updateDoc(doc(db, "apiProjects", currentProject.id), { endpoints: updatedEndpoints, folders: updatedFolders });
+    setActiveEndpoint(newEp);
+    setEditingEndpoint(null);
+  }, [db, currentProject]);
+
   const toggleFolder = (key: string) => {
     setExpandedFolders((prev) => {
       const next = new Set(prev);
@@ -465,8 +624,6 @@ export function ApiCollectionManager() {
       return next;
     });
   };
-
-  const currentProject = projects.find((p) => p.id === activeProject);
 
   // Filter endpoints by search
   const filterEndpoints = (endpoints: ApiEndpoint[]): ApiEndpoint[] => {
@@ -568,21 +725,44 @@ export function ApiCollectionManager() {
             {/* Right content */}
             {currentProject ? (
               <div className="space-y-3">
-                {/* Search + Add */}
-                <div className="flex items-center gap-2">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                    <Input
-                      placeholder="Search APIs..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-8 h-8 text-xs"
+                {/* Project Summary */}
+                <div className="rounded-xl border border-border/50 bg-muted/10 p-3 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-sm font-bold truncate">{currentProject.name}</h3>
+                      {currentProject.description && (
+                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{currentProject.description}</p>
+                      )}
+                    </div>
+                    <AddManualApiDialog
+                      onAdd={(endpoint, folderName) => handleAddEndpoint(currentProject.id, endpoint, folderName)}
                     />
                   </div>
-                  <AddManualApiDialog
-                    onAdd={(endpoint, folderName) => handleAddEndpoint(currentProject.id, endpoint, folderName)}
+                  <div className="flex flex-wrap items-center gap-3 text-[10px] text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Globe className="h-3 w-3" />
+                      {totalEndpoints} endpoint{totalEndpoints !== 1 ? "s" : ""}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <FolderOpen className="h-3 w-3" />
+                      {currentProject.folders.length} folder{currentProject.folders.length !== 1 ? "s" : ""}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      Imported {new Date(currentProject.importedAt).toLocaleDateString()} by {currentProject.importedByName}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Search */}
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                  <Input
+                    placeholder="Search APIs..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-8 h-8 text-xs"
                   />
-                  <Badge variant="outline" className="text-[10px] shrink-0">{totalEndpoints} endpoints</Badge>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-3 min-h-[350px]">
@@ -647,9 +827,13 @@ export function ApiCollectionManager() {
                   </ScrollArea>
 
                   {/* Endpoint detail */}
-                  <div className="rounded-xl border border-border/50 p-4 bg-muted/5">
+                  <div className="rounded-xl border border-border/50 p-4 bg-muted/5 min-w-0 overflow-hidden">
                     {activeEndpoint ? (
-                      <EndpointDetail endpoint={activeEndpoint} />
+                      <EndpointDetail
+                        endpoint={activeEndpoint}
+                        onEdit={() => setEditingEndpoint(activeEndpoint)}
+                        onDelete={() => handleDeleteEndpoint(activeEndpoint)}
+                      />
                     ) : (
                       <div className="flex flex-col items-center justify-center h-full text-center py-12">
                         <BookOpen className="h-8 w-8 text-muted-foreground/20 mb-2" />
@@ -668,7 +852,93 @@ export function ApiCollectionManager() {
           </div>
         )}
       </CardContent>
+
+      {/* Edit Endpoint Dialog */}
+      {editingEndpoint && (
+        <EditEndpointDialog
+          endpoint={editingEndpoint}
+          onSave={(updated) => handleUpdateEndpoint(editingEndpoint, updated)}
+          onClose={() => setEditingEndpoint(null)}
+        />
+      )}
     </Card>
+  );
+}
+
+// ─── Edit Endpoint Dialog ────────────────────────────────────────────────────
+function EditEndpointDialog({
+  endpoint,
+  onSave,
+  onClose,
+}: {
+  endpoint: ApiEndpoint;
+  onSave: (updated: ApiEndpoint) => void;
+  onClose: () => void;
+}) {
+  const [name, setName] = useState(endpoint.name);
+  const [method, setMethod] = useState<ApiEndpoint["method"]>(endpoint.method);
+  const [url, setUrl] = useState(endpoint.url);
+  const [description, setDescription] = useState(endpoint.description);
+  const [headersStr, setHeadersStr] = useState(
+    endpoint.headers.map((h) => `${h.key}: ${h.value}`).join("\n")
+  );
+  const [body, setBody] = useState(endpoint.body);
+
+  const handleSubmit = () => {
+    if (!name.trim() || !url.trim()) return;
+    const headers = headersStr
+      .split("\n")
+      .filter(Boolean)
+      .map((line) => {
+        const [key, ...rest] = line.split(":");
+        return { key: key?.trim() || "", value: rest.join(":").trim() };
+      });
+    onSave({
+      name: name.trim(),
+      method,
+      url: url.trim(),
+      description: description.trim(),
+      headers,
+      body,
+      auth: endpoint.auth,
+    });
+  };
+
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Edit Endpoint</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div className="grid grid-cols-[100px_1fr] gap-2">
+            <Select value={method} onValueChange={(v) => setMethod(v as ApiEndpoint["method"])}>
+              <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"].map((m) => (
+                  <SelectItem key={m} value={m} className="text-xs">{m}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input placeholder="URL" value={url} onChange={(e) => setUrl(e.target.value)} className="text-sm" />
+          </div>
+          <Input placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} className="text-sm" />
+          <Textarea placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} className="text-xs h-20 resize-none" />
+          <div className="space-y-1">
+            <Label className="text-xs">Headers (one per line: Key: Value)</Label>
+            <Textarea value={headersStr} onChange={(e) => setHeadersStr(e.target.value)} className="text-xs h-16 font-mono resize-none" />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Request Body (JSON)</Label>
+            <Textarea value={body} onChange={(e) => setBody(e.target.value)} className="text-xs h-16 font-mono resize-none" />
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onClose} className="flex-1">Cancel</Button>
+            <Button onClick={handleSubmit} disabled={!name.trim() || !url.trim()} className="flex-1">Save Changes</Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -684,19 +954,31 @@ function EndpointRow({
   onClick: () => void;
   indent?: boolean;
 }) {
+  const shortPath = (() => {
+    try {
+      const u = new URL(endpoint.url.startsWith("http") ? endpoint.url : `https://${endpoint.url}`);
+      return u.pathname;
+    } catch {
+      return "";
+    }
+  })();
+
   return (
     <button
       onClick={onClick}
       className={cn(
-        "flex items-center gap-1.5 w-full text-left px-2 py-1.5 transition-colors",
+        "flex items-start gap-1.5 w-full text-left px-2 py-2 transition-colors",
         indent && "pl-7",
         isActive ? "bg-primary/10" : "hover:bg-muted/30"
       )}
     >
-      <span className={cn("text-[9px] font-bold w-10 shrink-0 text-center", METHOD_TEXT_COLORS[endpoint.method])}>
+      <Badge variant="outline" className={cn("text-[8px] font-bold shrink-0 px-1 py-0 mt-0.5 border-0", METHOD_TEXT_COLORS[endpoint.method])}>
         {endpoint.method}
-      </span>
-      <span className="text-xs truncate">{endpoint.name}</span>
+      </Badge>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-medium truncate">{endpoint.name}</p>
+        {shortPath && <p className="text-[10px] font-mono text-muted-foreground truncate">{shortPath}</p>}
+      </div>
     </button>
   );
 }

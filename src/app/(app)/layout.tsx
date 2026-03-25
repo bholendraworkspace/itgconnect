@@ -15,7 +15,7 @@ import { useUser, useAuth } from "@/firebase";
 import { useFirestoreSeed, useEnsureEmployee } from "@/hooks/use-firestore-data";
 import { AppErrorBoundary } from "@/components/app-error-boundary";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Rocket, Menu, X, LogOut } from "lucide-react";
+import { Rocket, Menu, X, LogOut, PanelLeftClose, PanelLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -47,8 +47,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** Animated hamburger — must live inside SidebarProvider */
-function HamburgerButton() {
+/** Animated hamburger for mobile — must live inside SidebarProvider */
+function MobileMenuButton() {
   const { openMobile, toggleSidebar } = useSidebar();
   return (
     <button
@@ -66,6 +66,24 @@ function HamburgerButton() {
           openMobile ? "opacity-100 rotate-0 scale-100" : "opacity-0 -rotate-90 scale-75"
         }`}
       />
+    </button>
+  );
+}
+
+/** Desktop sidebar toggle */
+function DesktopSidebarToggle() {
+  const { open, toggleSidebar } = useSidebar();
+  return (
+    <button
+      onClick={toggleSidebar}
+      aria-label="Toggle sidebar"
+      className="hidden md:flex h-9 w-9 items-center justify-center rounded-xl hover:bg-muted/60 transition-colors duration-200"
+    >
+      {open ? (
+        <PanelLeftClose className="h-5 w-5 text-muted-foreground" />
+      ) : (
+        <PanelLeft className="h-5 w-5 text-muted-foreground" />
+      )}
     </button>
   );
 }
@@ -155,7 +173,8 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-4 border-b border-border/50 bg-background/80 px-4 backdrop-blur-md md:px-6">
           <div className="flex items-center gap-3">
-            <HamburgerButton />
+            <MobileMenuButton />
+            <DesktopSidebarToggle />
             {/* Mobile wordmark */}
             <Link href="/dashboard" className="flex items-center gap-2 md:hidden">
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent shadow-md shadow-primary/30">
