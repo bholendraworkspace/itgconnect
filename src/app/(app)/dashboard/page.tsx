@@ -177,7 +177,7 @@ export default function DashboardPage() {
           <div className="rounded-xl border border-border/50 bg-muted/20 p-4 space-y-4">
 
             {/* Row 1: Birthdays (left, wider) + Special Announcements (right, compact) */}
-            <div className="grid gap-4 grid-cols-1 lg:grid-cols-[1fr_260px]">
+            <div className="grid gap-4 grid-cols-1 lg:grid-cols-[1fr_300px]">
               <BirthdayCorner />
               <SpecialAnnouncementsCorner />
             </div>

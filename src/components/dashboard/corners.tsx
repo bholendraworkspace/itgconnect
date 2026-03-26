@@ -127,6 +127,7 @@ export function SpecialAnnouncementsCorner() {
   const { employees } = useEmployees();
   const { user } = useUser();
   const [open, setOpen] = useState(false);
+  const [showAll, setShowAll] = useState(false);
   const [form, setForm] = useState({ type: "car" as SpecialAnnouncement["type"] });
 
   const currentEmployee = employees.find((e) => e.email === user?.email) || employees[0];
@@ -179,7 +180,7 @@ export function SpecialAnnouncementsCorner() {
       <CardContent className="px-4 sm:px-5 pb-4 sm:pb-5">
         {announcements.length > 0 ? (
           <div className="space-y-2 sm:space-y-3">
-            {announcements.map((announcement) => {
+            {(showAll ? announcements : announcements.slice(0, 2)).map((announcement) => {
               const config = announcementConfig[announcement.type];
               return (
                 <div key={announcement.id} className="flex items-center justify-between rounded-xl bg-muted/40 px-3 py-2 sm:py-3">
@@ -205,6 +206,16 @@ export function SpecialAnnouncementsCorner() {
                 </div>
               );
             })}
+            {announcements.length > 2 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full h-7 text-xs text-muted-foreground hover:text-foreground"
+                onClick={() => setShowAll(!showAll)}
+              >
+                {showAll ? "Show Less" : `View All (${announcements.length})`}
+              </Button>
+            )}
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">No special announcements at this time.</p>
