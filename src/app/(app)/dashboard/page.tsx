@@ -133,6 +133,7 @@ export default function DashboardPage() {
   const displayName = user?.displayName?.split(" ")[0] || "there";
   const [activeTool, setActiveTool] = useState<ToolId | null>(null);
   const [activeCategory, setActiveCategory] = useState<CategoryId>("all");
+  const [toolsExpanded, setToolsExpanded] = useState(false);
   const [communityOpen, setCommunityOpen] = useState(true);
 
   const filteredTools = activeCategory === "all" ? tools : tools.filter((t) => t.category === activeCategory);
@@ -183,36 +184,55 @@ export default function DashboardPage() {
         })}
       </div>
 
-      {/* Tool Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        {filteredTools.map((tool) => {
-          const isActive = activeTool === tool.id;
-          return (
-            <button
-              key={tool.id}
-              onClick={() => setActiveTool(isActive ? null : tool.id)}
-              className={cn(
-                "group relative flex flex-col items-center gap-3 rounded-xl border p-4 text-center transition-all duration-200",
-                isActive
-                  ? "border-primary bg-primary/5 shadow-lg shadow-primary/10 scale-[1.02]"
-                  : "border-border/50 bg-card hover:border-primary/30 hover:shadow-md hover:scale-[1.01]"
-              )}
-            >
-              <div className={cn(
-                "flex h-11 w-11 items-center justify-center rounded-lg bg-gradient-to-br text-white shadow-md transition-transform duration-200 group-hover:scale-110",
-                tool.color
-              )}>
-                <tool.icon className="h-5 w-5" />
-              </div>
-              <span className="text-xs font-semibold leading-tight">{tool.label}</span>
-              <span className="text-[10px] text-muted-foreground leading-tight hidden sm:block">{tool.description}</span>
-              {isActive && (
-                <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-primary shadow-sm shadow-primary/60 animate-pulse" />
-              )}
-            </button>
-          );
-        })}
-      </div>
+      {/* Tool Grid — max 2 rows (12 items) collapsed, expand to show all */}
+      {(() => {
+        const maxVisible = 12;
+        const visibleTools = toolsExpanded ? filteredTools : filteredTools.slice(0, maxVisible);
+        const hasMore = filteredTools.length > maxVisible;
+
+        return (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {visibleTools.map((tool) => {
+                const isActive = activeTool === tool.id;
+                return (
+                  <button
+                    key={tool.id}
+                    onClick={() => setActiveTool(isActive ? null : tool.id)}
+                    className={cn(
+                      "group relative flex flex-col items-center gap-3 rounded-xl border p-4 text-center transition-all duration-200",
+                      isActive
+                        ? "border-primary bg-primary/5 shadow-lg shadow-primary/10 scale-[1.02]"
+                        : "border-border/50 bg-card hover:border-primary/30 hover:shadow-md hover:scale-[1.01]"
+                    )}
+                  >
+                    <div className={cn(
+                      "flex h-11 w-11 items-center justify-center rounded-lg bg-gradient-to-br text-white shadow-md transition-transform duration-200 group-hover:scale-110",
+                      tool.color
+                    )}>
+                      <tool.icon className="h-5 w-5" />
+                    </div>
+                    <span className="text-xs font-semibold leading-tight">{tool.label}</span>
+                    <span className="text-[10px] text-muted-foreground leading-tight hidden sm:block">{tool.description}</span>
+                    {isActive && (
+                      <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-primary shadow-sm shadow-primary/60 animate-pulse" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            {hasMore && (
+              <button
+                onClick={() => setToolsExpanded(!toolsExpanded)}
+                className="flex items-center gap-1.5 mx-auto text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ChevronDown className={cn("h-3.5 w-3.5 transition-transform duration-200", toolsExpanded && "rotate-180")} />
+                {toolsExpanded ? "Show Less" : `Show All (${filteredTools.length - maxVisible} more)`}
+              </button>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Active Tool Panel */}
       {ActiveComponent && activeToolMeta && (
