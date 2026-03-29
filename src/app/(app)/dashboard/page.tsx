@@ -54,6 +54,7 @@ import {
   Gauge,
   Lock,
   FileCode,
+  LayoutGrid,
 } from "lucide-react";
 import {
   Collapsible,
@@ -68,27 +69,38 @@ function getGreeting() {
   return "Good evening";
 }
 
+const categories = [
+  { id: "all", label: "All Tools", icon: LayoutGrid },
+  { id: "api", label: "API & Data" },
+  { id: "encode", label: "Encode / Decode" },
+  { id: "web", label: "HTML & CSS" },
+  { id: "testing", label: "Testing & SEO" },
+  { id: "utility", label: "Utilities" },
+] as const;
+
+type CategoryId = (typeof categories)[number]["id"];
+
 const tools = [
-  { id: "api-collection", label: "API Collections", icon: BookOpen, color: "from-violet-500 to-fuchsia-500", description: "Import & browse API docs" },
-  { id: "json-viewer", label: "JSON Formatter", icon: Braces, color: "from-blue-500 to-cyan-500", description: "Format, validate & minify" },
-  { id: "password-generator", label: "Password Generator", icon: Lock, color: "from-rose-500 to-pink-500", description: "Generate secure passwords" },
-  { id: "base64", label: "Base64", icon: Binary, color: "from-emerald-500 to-teal-500", description: "Encode & decode strings" },
-  { id: "url-encoder", label: "URL Encoder", icon: Link2, color: "from-sky-500 to-blue-500", description: "Encode & decode URLs" },
-  { id: "text-diff", label: "Diff Checker", icon: FileText, color: "from-orange-500 to-red-500", description: "Compare text & code" },
-  { id: "jwt-decoder", label: "JWT Decoder", icon: KeyRound, color: "from-yellow-500 to-amber-500", description: "Decode bearer tokens" },
-  { id: "schema-checker", label: "Schema Check", icon: FileCode, color: "from-cyan-500 to-blue-500", description: "Check page schema & SEO" },
-  { id: "html-viewer", label: "HTML Viewer", icon: Eye, color: "from-pink-500 to-rose-500", description: "Render basic HTML" },
-  { id: "html-formatter", label: "HTML Formatter", icon: Code2, color: "from-fuchsia-500 to-purple-500", description: "Format HTML online" },
-  { id: "css-minifier", label: "CSS Minifier", icon: Minimize2, color: "from-blue-500 to-indigo-500", description: "Minify & compress CSS" },
-  { id: "css-gradient", label: "CSS Gradient", icon: Paintbrush, color: "from-violet-500 to-pink-500", description: "Generate CSS gradients" },
-  { id: "purge-url", label: "Purge URL", icon: Zap, color: "from-red-500 to-orange-500", description: "Purge live & alpha cache" },
-  { id: "amp-validator", label: "AMP Validator", icon: ShieldCheck, color: "from-amber-500 to-yellow-500", description: "Validate AMP pages" },
-  { id: "pagespeed", label: "PageSpeed", icon: Gauge, color: "from-green-500 to-teal-500", description: "Website performance" },
-  { id: "timestamp", label: "Timestamp", icon: Clock, color: "from-amber-500 to-orange-500", description: "Unix ↔ datetime convert" },
-  { id: "uuid-generator", label: "UUID Generator", icon: Fingerprint, color: "from-indigo-500 to-violet-500", description: "Generate v4 UUIDs" },
-  { id: "markdown-preview", label: "Markdown", icon: Type, color: "from-purple-500 to-indigo-500", description: "Preview markdown live" },
-  { id: "color-converter", label: "Color Converter", icon: Palette, color: "from-green-500 to-emerald-500", description: "HEX, RGB, HSL convert" },
-  { id: "hash-generator", label: "Hash Generator", icon: Hash, color: "from-slate-500 to-zinc-500", description: "SHA-256, SHA-1 hashing" },
+  { id: "api-collection", label: "API Collections", icon: BookOpen, color: "from-violet-500 to-fuchsia-500", description: "Import & browse API docs", category: "api" },
+  { id: "json-viewer", label: "JSON Formatter", icon: Braces, color: "from-blue-500 to-cyan-500", description: "Format, validate & minify", category: "api" },
+  { id: "jwt-decoder", label: "JWT Decoder", icon: KeyRound, color: "from-yellow-500 to-amber-500", description: "Decode bearer tokens", category: "encode" },
+  { id: "base64", label: "Base64", icon: Binary, color: "from-emerald-500 to-teal-500", description: "Encode & decode strings", category: "encode" },
+  { id: "url-encoder", label: "URL Encoder", icon: Link2, color: "from-sky-500 to-blue-500", description: "Encode & decode URLs", category: "encode" },
+  { id: "password-generator", label: "Password Generator", icon: Lock, color: "from-rose-500 to-pink-500", description: "Generate secure passwords", category: "encode" },
+  { id: "hash-generator", label: "Hash Generator", icon: Hash, color: "from-slate-500 to-zinc-500", description: "SHA-256, SHA-1 hashing", category: "encode" },
+  { id: "html-viewer", label: "HTML Viewer", icon: Eye, color: "from-pink-500 to-rose-500", description: "Render basic HTML", category: "web" },
+  { id: "html-formatter", label: "HTML Formatter", icon: Code2, color: "from-fuchsia-500 to-purple-500", description: "Format HTML online", category: "web" },
+  { id: "css-minifier", label: "CSS Minifier", icon: Minimize2, color: "from-blue-500 to-indigo-500", description: "Minify & compress CSS", category: "web" },
+  { id: "css-gradient", label: "CSS Gradient", icon: Paintbrush, color: "from-violet-500 to-pink-500", description: "Generate CSS gradients", category: "web" },
+  { id: "markdown-preview", label: "Markdown", icon: Type, color: "from-purple-500 to-indigo-500", description: "Preview markdown live", category: "web" },
+  { id: "schema-checker", label: "Schema Check", icon: FileCode, color: "from-cyan-500 to-blue-500", description: "Check page schema & SEO", category: "testing" },
+  { id: "amp-validator", label: "AMP Validator", icon: ShieldCheck, color: "from-amber-500 to-yellow-500", description: "Validate AMP pages", category: "testing" },
+  { id: "pagespeed", label: "PageSpeed", icon: Gauge, color: "from-green-500 to-teal-500", description: "Website performance", category: "testing" },
+  { id: "purge-url", label: "Purge URL", icon: Zap, color: "from-red-500 to-orange-500", description: "Purge live & alpha cache", category: "testing" },
+  { id: "text-diff", label: "Diff Checker", icon: FileText, color: "from-orange-500 to-red-500", description: "Compare text & code", category: "utility" },
+  { id: "timestamp", label: "Timestamp", icon: Clock, color: "from-amber-500 to-orange-500", description: "Unix ↔ datetime convert", category: "utility" },
+  { id: "uuid-generator", label: "UUID Generator", icon: Fingerprint, color: "from-indigo-500 to-violet-500", description: "Generate v4 UUIDs", category: "utility" },
+  { id: "color-converter", label: "Color Converter", icon: Palette, color: "from-green-500 to-emerald-500", description: "HEX, RGB, HSL convert", category: "utility" },
 ] as const;
 
 type ToolId = (typeof tools)[number]["id"];
@@ -120,8 +132,10 @@ export default function DashboardPage() {
   const { user } = useUser();
   const displayName = user?.displayName?.split(" ")[0] || "there";
   const [activeTool, setActiveTool] = useState<ToolId | null>(null);
+  const [activeCategory, setActiveCategory] = useState<CategoryId>("all");
   const [communityOpen, setCommunityOpen] = useState(true);
 
+  const filteredTools = activeCategory === "all" ? tools : tools.filter((t) => t.category === activeCategory);
   const ActiveComponent = activeTool ? toolComponents[activeTool] : null;
   const activeToolMeta = activeTool ? tools.find((t) => t.id === activeTool) : null;
 
@@ -141,9 +155,37 @@ export default function DashboardPage() {
         <div className="pointer-events-none absolute -left-8 -bottom-8 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
       </div>
 
+      {/* Category Tabs */}
+      <div className="flex items-center gap-1 border-b border-border/50 overflow-x-auto pb-px">
+        {categories.map((cat) => {
+          const isActive = activeCategory === cat.id;
+          const count = cat.id === "all" ? tools.length : tools.filter((t) => t.category === cat.id).length;
+          return (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategory(cat.id)}
+              className={cn(
+                "flex items-center gap-1.5 whitespace-nowrap px-3 py-2 text-xs font-medium border-b-2 transition-all duration-150 -mb-px",
+                isActive
+                  ? "border-primary text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+              )}
+            >
+              {cat.label}
+              <span className={cn(
+                "text-[10px] px-1.5 py-0.5 rounded-full",
+                isActive ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+              )}>
+                {count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Tool Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        {tools.map((tool) => {
+        {filteredTools.map((tool) => {
           const isActive = activeTool === tool.id;
           return (
             <button

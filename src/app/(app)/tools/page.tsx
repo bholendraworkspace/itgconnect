@@ -44,29 +44,41 @@ import {
   Gauge,
   Lock,
   FileCode,
+  LayoutGrid,
 } from "lucide-react";
 
+const categories = [
+  { id: "all", label: "All Tools", icon: LayoutGrid },
+  { id: "api", label: "API & Data" },
+  { id: "encode", label: "Encode / Decode" },
+  { id: "web", label: "HTML & CSS" },
+  { id: "testing", label: "Testing & SEO" },
+  { id: "utility", label: "Utilities" },
+] as const;
+
+type CategoryId = (typeof categories)[number]["id"];
+
 const tools = [
-  { id: "api-collection", label: "API Collections", icon: BookOpen, color: "from-violet-500 to-fuchsia-500" },
-  { id: "json-viewer", label: "JSON Formatter", icon: Braces, color: "from-blue-500 to-cyan-500" },
-  { id: "password-generator", label: "Password Generator", icon: Lock, color: "from-rose-500 to-pink-500" },
-  { id: "base64", label: "Base64", icon: Binary, color: "from-emerald-500 to-teal-500" },
-  { id: "url-encoder", label: "URL Encoder", icon: Link2, color: "from-sky-500 to-blue-500" },
-  { id: "text-diff", label: "Diff Checker", icon: FileText, color: "from-orange-500 to-red-500" },
-  { id: "jwt-decoder", label: "JWT Decoder", icon: KeyRound, color: "from-yellow-500 to-amber-500" },
-  { id: "schema-checker", label: "Schema Check", icon: FileCode, color: "from-cyan-500 to-blue-500" },
-  { id: "html-viewer", label: "HTML Viewer", icon: Eye, color: "from-pink-500 to-rose-500" },
-  { id: "html-formatter", label: "HTML Formatter", icon: Code2, color: "from-fuchsia-500 to-purple-500" },
-  { id: "css-minifier", label: "CSS Minifier", icon: Minimize2, color: "from-blue-500 to-indigo-500" },
-  { id: "css-gradient", label: "CSS Gradient", icon: Paintbrush, color: "from-violet-500 to-pink-500" },
-  { id: "purge-url", label: "Purge URL", icon: Zap, color: "from-red-500 to-orange-500" },
-  { id: "amp-validator", label: "AMP Validator", icon: ShieldCheck, color: "from-amber-500 to-yellow-500" },
-  { id: "pagespeed", label: "PageSpeed", icon: Gauge, color: "from-green-500 to-teal-500" },
-  { id: "timestamp", label: "Timestamp", icon: Clock, color: "from-amber-500 to-orange-500" },
-  { id: "uuid-generator", label: "UUID Generator", icon: Fingerprint, color: "from-indigo-500 to-violet-500" },
-  { id: "markdown-preview", label: "Markdown", icon: Type, color: "from-purple-500 to-indigo-500" },
-  { id: "color-converter", label: "Color Converter", icon: Palette, color: "from-green-500 to-emerald-500" },
-  { id: "hash-generator", label: "Hash Generator", icon: Hash, color: "from-slate-500 to-zinc-500" },
+  { id: "api-collection", label: "API Collections", icon: BookOpen, color: "from-violet-500 to-fuchsia-500", category: "api" },
+  { id: "json-viewer", label: "JSON Formatter", icon: Braces, color: "from-blue-500 to-cyan-500", category: "api" },
+  { id: "jwt-decoder", label: "JWT Decoder", icon: KeyRound, color: "from-yellow-500 to-amber-500", category: "encode" },
+  { id: "base64", label: "Base64", icon: Binary, color: "from-emerald-500 to-teal-500", category: "encode" },
+  { id: "url-encoder", label: "URL Encoder", icon: Link2, color: "from-sky-500 to-blue-500", category: "encode" },
+  { id: "password-generator", label: "Password Generator", icon: Lock, color: "from-rose-500 to-pink-500", category: "encode" },
+  { id: "hash-generator", label: "Hash Generator", icon: Hash, color: "from-slate-500 to-zinc-500", category: "encode" },
+  { id: "html-viewer", label: "HTML Viewer", icon: Eye, color: "from-pink-500 to-rose-500", category: "web" },
+  { id: "html-formatter", label: "HTML Formatter", icon: Code2, color: "from-fuchsia-500 to-purple-500", category: "web" },
+  { id: "css-minifier", label: "CSS Minifier", icon: Minimize2, color: "from-blue-500 to-indigo-500", category: "web" },
+  { id: "css-gradient", label: "CSS Gradient", icon: Paintbrush, color: "from-violet-500 to-pink-500", category: "web" },
+  { id: "markdown-preview", label: "Markdown", icon: Type, color: "from-purple-500 to-indigo-500", category: "web" },
+  { id: "schema-checker", label: "Schema Check", icon: FileCode, color: "from-cyan-500 to-blue-500", category: "testing" },
+  { id: "amp-validator", label: "AMP Validator", icon: ShieldCheck, color: "from-amber-500 to-yellow-500", category: "testing" },
+  { id: "pagespeed", label: "PageSpeed", icon: Gauge, color: "from-green-500 to-teal-500", category: "testing" },
+  { id: "purge-url", label: "Purge URL", icon: Zap, color: "from-red-500 to-orange-500", category: "testing" },
+  { id: "text-diff", label: "Diff Checker", icon: FileText, color: "from-orange-500 to-red-500", category: "utility" },
+  { id: "timestamp", label: "Timestamp", icon: Clock, color: "from-amber-500 to-orange-500", category: "utility" },
+  { id: "uuid-generator", label: "UUID Generator", icon: Fingerprint, color: "from-indigo-500 to-violet-500", category: "utility" },
+  { id: "color-converter", label: "Color Converter", icon: Palette, color: "from-green-500 to-emerald-500", category: "utility" },
 ] as const;
 
 type ToolId = (typeof tools)[number]["id"];
@@ -74,29 +86,31 @@ type ToolId = (typeof tools)[number]["id"];
 const toolComponents: Record<ToolId, React.FC> = {
   "api-collection": ApiCollectionManager,
   "json-viewer": JsonViewer,
-  "password-generator": PasswordGenerator,
+  "jwt-decoder": JwtDecoder,
   base64: Base64Tool,
   "url-encoder": UrlEncoder,
-  "text-diff": TextDiff,
-  "jwt-decoder": JwtDecoder,
-  "schema-checker": SchemaChecker,
+  "password-generator": PasswordGenerator,
+  "hash-generator": HashGenerator,
   "html-viewer": HtmlViewer,
   "html-formatter": HtmlFormatter,
   "css-minifier": CssMinifier,
   "css-gradient": CssGradientGenerator,
-  "purge-url": PurgeUrl,
+  "markdown-preview": MarkdownPreview,
+  "schema-checker": SchemaChecker,
   "amp-validator": AmpValidator,
   pagespeed: PageSpeed,
+  "purge-url": PurgeUrl,
+  "text-diff": TextDiff,
   timestamp: TimestampConverter,
   "uuid-generator": UuidGenerator,
-  "markdown-preview": MarkdownPreview,
   "color-converter": ColorConverter,
-  "hash-generator": HashGenerator,
 };
 
 export default function ToolsPage() {
   const [activeTool, setActiveTool] = useState<ToolId>("api-collection");
+  const [activeCategory, setActiveCategory] = useState<CategoryId>("all");
 
+  const filteredTools = activeCategory === "all" ? tools : tools.filter((t) => t.category === activeCategory);
   const ActiveComponent = toolComponents[activeTool];
 
   return (
@@ -111,9 +125,37 @@ export default function ToolsPage() {
         </p>
       </div>
 
+      {/* Category tabs */}
+      <div className="flex items-center gap-1 border-b border-border/50 overflow-x-auto pb-px">
+        {categories.map((cat) => {
+          const isActive = activeCategory === cat.id;
+          const count = cat.id === "all" ? tools.length : tools.filter((t) => t.category === cat.id).length;
+          return (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategory(cat.id)}
+              className={cn(
+                "flex items-center gap-1.5 whitespace-nowrap px-3 py-2 text-xs font-medium border-b-2 transition-all duration-150 -mb-px",
+                isActive
+                  ? "border-primary text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+              )}
+            >
+              {cat.label}
+              <span className={cn(
+                "text-[10px] px-1.5 py-0.5 rounded-full",
+                isActive ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+              )}>
+                {count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Tool selector */}
       <div className="flex flex-wrap gap-2">
-        {tools.map((tool) => {
+        {filteredTools.map((tool) => {
           const isActive = activeTool === tool.id;
           return (
             <button
