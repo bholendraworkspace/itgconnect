@@ -59,11 +59,11 @@ All Firestore collections are accessed through dedicated hooks with real-time `o
 
 - `src/components/ui/` — shadcn/ui primitives (Radix UI + Tailwind). Do not modify these directly; regenerate via shadcn CLI.
 - `src/components/dashboard/` — Feature components for dashboard sections (corners, achievements, ideas, events)
-- `src/components/tools/` — Developer tool components (JSON viewer, Base64, timestamp, etc.)
+- `src/components/tools/` — 20+ Developer tool components (JSON viewer, Base64, Timestamp, PageSpeed Insights, API Collection, etc.)
 
 ### Types
 
-All shared TypeScript types are in `src/lib/types.ts`: `Employee`, `Achievement`, `NewsArticle`, `SpecialAnnouncement`, `Idea`, `Recognition`, `Feedback`, `Event`.
+All shared TypeScript types are in `src/lib/types.ts`: `Employee`, `Achievement`, `NewsArticle`, `SpecialAnnouncement`, `Idea`, `Recognition`, `Feedback`, `Event`, `PageSpeedHistory`, `ApiHeader`, `ApiEndpoint`, `ApiFolder`, `ApiProject`.
 
 ### AI Features (`src/ai/`)
 

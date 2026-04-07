@@ -7,7 +7,7 @@
 - Self-Managed Employee Profiles: Allow users to view and update their personal details, including profile photo, and manage their individual achievements.
 - Organization-Wide Achievement Feed: A dynamic, centralized feed showcasing recent accomplishments and achievements from employees across the entire organization.
 - Office News & Events Hub: A dedicated section for administrators to post and employees to browse internal events, announcements, and company activities.
-- Essential Developer Tool Suite: Provide practical developer utilities such as a JSON viewer, HTML viewer, Base64 encoder/decoder, and Timestamp converter.
+- Essential Developer Tool Suite: Provide a robust set of 20+ practical developer utilities such as a JSON viewer, HTML viewer, Base64 encoder/decoder, Timestamp converter, PageSpeed Insights checker, API Collection manager, CSS Minifier, JWT Decoder, Hash Generator, and Markdown Preview.
 - AI API Response Explainer Tool: An AI-powered tool that acts as a valuable assistant to parse complex API responses, offering human-readable summaries, explanations of key fields, and potentially suggesting next steps or common issues. This tool enhances the developer utility suite by making API responses more accessible.
 
 ## Style Guidelines:
