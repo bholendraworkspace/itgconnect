@@ -91,7 +91,7 @@ function DesktopSidebarToggle() {
 function AppLayoutInner({ children }: { children: React.ReactNode }) {
   const { user } = useUser();
   const auth = useAuth();
-  useFirestoreSeed();
+  useFirestoreSeed(user);
   useEnsureEmployee(user);
 
   const handleSignOut = async () => {

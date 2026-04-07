@@ -11,7 +11,9 @@ service cloud.firestore {
     match /employees/{employeeId} {
       allow read: if isAuth();
       allow create: if isAuth();
-      allow update: if isAuth() && request.auth.uid == employeeId;
+      // Allow users to update their own record (uid-based docs)
+      // Also allow updates to seed employee docs (numeric IDs) for seeding
+      allow update: if isAuth() && (request.auth.uid == employeeId || employeeId.matches('^[0-9]+$'));
       allow delete: if false;
     }
 
@@ -78,6 +80,11 @@ service cloud.firestore {
       allow create: if isAuth();
       allow update: if isAuth();
       allow delete: if isAuth();
+    }
+
+    // ── Meta (seed state tracking) ──────────────────────────────────────────
+    match /_meta/{docId} {
+      allow read, write: if isAuth();
     }
 
   }

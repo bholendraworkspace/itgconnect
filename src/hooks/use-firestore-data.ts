@@ -7,6 +7,7 @@ import {
   doc,
   addDoc,
   updateDoc,
+  deleteDoc,
   onSnapshot,
   query,
   orderBy,
@@ -14,6 +15,8 @@ import {
   arrayRemove,
   increment,
   getDocs,
+  getDoc,
+  setDoc,
   writeBatch,
 } from "firebase/firestore";
 import type {
@@ -242,13 +245,61 @@ export function useFeedback() {
   return { submitFeedback };
 }
 
+// ─── Known seed document IDs ─────────────────────────────────────────────────
+const SEED_EMPLOYEE_IDS = new Set(seedEmployees.map((e) => e.id));
+const SEED_COLLECTIONS: { name: string; ids: Set<string> }[] = [
+  { name: "achievements", ids: new Set(seedAchievements.map((a) => a.id)) },
+  { name: "recognitions", ids: new Set(seedRecognitions.map((r) => r.id)) },
+  { name: "ideas", ids: new Set(seedIdeas.map((i) => i.id)) },
+  { name: "events", ids: new Set(seedEvents.map((e) => e.id)) },
+  { name: "specialAnnouncements", ids: new Set(seedAnnouncements.map((a) => a.id)) },
+  { name: "news", ids: new Set(seedNews.map((n) => n.id)) },
+];
+
+// ─── Clear Dummy Data ────────────────────────────────────────────────────────
+// Deletes all seed/dummy documents but preserves real Google-logged-in user records.
+export async function clearDummyData(db: ReturnType<typeof useFirestore>) {
+  const batch = writeBatch(db);
+
+  // Delete seed employees only (real users have Firebase UIDs as IDs, not '1'-'13')
+  const empSnap = await getDocs(collection(db, "employees"));
+  empSnap.docs.forEach((d) => {
+    if (SEED_EMPLOYEE_IDS.has(d.id)) {
+      batch.delete(d.ref);
+    }
+  });
+
+  // Delete seed docs from all other collections
+  for (const { name, ids } of SEED_COLLECTIONS) {
+    const snap = await getDocs(collection(db, name));
+    snap.docs.forEach((d) => {
+      if (ids.has(d.id)) {
+        batch.delete(d.ref);
+      }
+    });
+  }
+
+  // Mark that dummy data has been cleared so seed doesn't re-run
+  batch.set(doc(db, "_meta", "seeded"), { cleared: true });
+
+  await batch.commit();
+  console.log("Dummy data cleared. Real user data preserved.");
+}
+
 // ─── Seed ─────────────────────────────────────────────────────────────────────
-export function useFirestoreSeed() {
+export function useFirestoreSeed(user: { uid: string } | null) {
   const db = useFirestore();
 
   useEffect(() => {
+    // Wait until user is authenticated so Firestore has the auth token
+    if (!user) return;
+
     async function seed() {
       try {
+        // Skip seeding if dummy data was explicitly cleared
+        const metaSnap = await getDoc(doc(db, "_meta", "seeded"));
+        if (metaSnap.exists() && metaSnap.data()?.cleared) return;
+
         const [ideasSnap, empSnap] = await Promise.all([
           getDocs(collection(db, "ideas")),
           getDocs(collection(db, "employees")),
@@ -297,5 +348,5 @@ export function useFirestoreSeed() {
     }
 
     seed();
-  }, [db]);
+  }, [db, user]);
 }
