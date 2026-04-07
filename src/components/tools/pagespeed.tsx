@@ -75,7 +75,8 @@ function ScoreCircle({ score, size = 80 }: { score: number; size?: number }) {
   );
 }
 
-const API_KEY = ""; // Users should add their own API key
+// Use the Firebase project API key — quota is tied to project studio-1240945126-b5f6c
+const API_KEY = "AIzaSyDfJjKOU1dHmYfL555rFuFiQGjsKJPSJeo";
 
 export function PageSpeed() {
   const [url, setUrl] = useState("");
