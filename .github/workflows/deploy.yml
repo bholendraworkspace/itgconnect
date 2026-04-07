@@ -26,14 +26,6 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Write service account key
-        run: echo '${{ secrets.SERVICE_KEY }}' > ${{ runner.temp }}/sa.json
-
-      - name: Deploy Firestore rules
-        run: npx firebase-tools deploy --only firestore:rules --project studio-1240945126-b5f6c
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
-
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
