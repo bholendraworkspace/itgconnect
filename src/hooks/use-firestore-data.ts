@@ -28,6 +28,7 @@ import type {
   SpecialAnnouncement,
   NewsArticle,
   Feedback,
+  PageSpeedHistory,
 } from "@/lib/types";
 import {
   employees as seedEmployees,
@@ -272,6 +273,32 @@ export function useEnsureEmployee(user: { uid: string; email?: string | null; di
       setDoc(doc(db, "employees", user.uid), newEmployee, { merge: true }).catch(console.error);
     });
   }, [user, employees, loading, db]);
+}
+
+// ─── PageSpeed History ───────────────────────────────────────────────────────
+export function usePageSpeedHistory() {
+  const db = useFirestore();
+  const [history, setHistory] = useState<PageSpeedHistory[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const q = query(collection(db, "pagespeedHistory"), orderBy("createdAt", "desc"));
+    const unsub = onSnapshot(q, (snap) => {
+      setHistory(snap.docs.map((d) => ({ ...d.data(), id: d.id }) as PageSpeedHistory));
+      setLoading(false);
+    });
+    return unsub;
+  }, [db]);
+
+  const addEntry = async (entry: Omit<PageSpeedHistory, "id">) => {
+    await addDoc(collection(db, "pagespeedHistory"), entry);
+  };
+
+  const deleteEntry = async (id: string) => {
+    await deleteDoc(doc(db, "pagespeedHistory", id));
+  };
+
+  return { history, loading, addEntry, deleteEntry };
 }
 
 // ─── Feedback ─────────────────────────────────────────────────────────────────

@@ -5,21 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Search, ExternalLink, Loader2 } from "lucide-react";
+import { Trash2, Search, ExternalLink, Loader2, History, Clock } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { usePageSpeedHistory } from "@/hooks/use-firestore-data";
+import { useUser } from "@/firebase";
+import type { PageSpeedHistory } from "@/lib/types";
 
 interface MetricData {
   label: string;
   value: string;
   score: number;
   description: string;
-}
-
-interface PageSpeedResult {
-  url: string;
-  strategy: string;
-  overallScore: number;
-  metrics: MetricData[];
-  timestamp: string;
 }
 
 function getScoreColor(score: number): string {
@@ -79,12 +75,13 @@ function ScoreCircle({ score, size = 80 }: { score: number; size?: number }) {
 const API_KEY = "AIzaSyDfJjKOU1dHmYfL555rFuFiQGjsKJPSJeo";
 
 export function PageSpeed() {
+  const { user } = useUser();
+  const { history, loading: historyLoading, addEntry, deleteEntry } = usePageSpeedHistory();
   const [url, setUrl] = useState("");
   const [strategy, setStrategy] = useState<"mobile" | "desktop">("mobile");
-  const [result, setResult] = useState<PageSpeedResult | null>(null);
+  const [result, setResult] = useState<PageSpeedHistory | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [history, setHistory] = useState<PageSpeedResult[]>([]);
 
   const handleAnalyze = async () => {
     if (!url.trim()) return;
@@ -149,21 +146,27 @@ export function PageSpeed() {
         },
       ];
 
-      const resultData: PageSpeedResult = {
+      const entry: Omit<PageSpeedHistory, "id"> = {
         url: testUrl,
         strategy,
         overallScore,
         metrics,
-        timestamp: new Date().toLocaleTimeString(),
+        userId: user?.uid || "",
+        userName: user?.displayName || user?.email || "Anonymous",
+        createdAt: new Date().toISOString(),
       };
 
-      setResult(resultData);
-      setHistory((prev) => [resultData, ...prev.slice(0, 4)]);
+      await addEntry(entry);
+      setResult({ ...entry, id: "" } as PageSpeedHistory);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to analyze. Try again.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const viewHistoryEntry = (entry: PageSpeedHistory) => {
+    setResult(entry);
   };
 
   return (
@@ -231,7 +234,10 @@ export function PageSpeed() {
                 <p className="text-xs text-muted-foreground">{result.url}</p>
                 <div className="flex items-center gap-2 mt-1">
                   <Badge variant="outline" className="text-[10px] capitalize">{result.strategy}</Badge>
-                  <span className="text-[10px] text-muted-foreground">{result.timestamp}</span>
+                  <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                    <Clock className="h-2.5 w-2.5" />
+                    {formatDistanceToNow(new Date(result.createdAt), { addSuffix: true })}
+                  </span>
                 </div>
               </div>
             </div>
@@ -264,17 +270,44 @@ export function PageSpeed() {
           </div>
         )}
 
-        {/* History */}
-        {history.length > 0 && !loading && (
+        {/* Firestore History */}
+        {!historyLoading && history.length > 0 && !loading && (
           <div className="space-y-1.5">
-            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Recent Tests</span>
-            <div className="rounded-xl border border-border/50 divide-y divide-border/30">
-              {history.map((h, i) => (
-                <div key={i} className="flex items-center gap-3 px-3 py-2 hover:bg-muted/30 cursor-pointer" onClick={() => setResult(h)}>
-                  <span className={`text-sm font-bold ${getScoreColor(h.overallScore)}`}>{h.overallScore}</span>
-                  <code className="text-[10px] font-mono truncate flex-1">{h.url}</code>
-                  <Badge variant="outline" className="text-[9px] capitalize">{h.strategy}</Badge>
-                  <span className="text-[10px] text-muted-foreground">{h.timestamp}</span>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                <History className="h-3 w-3" /> Test History
+              </span>
+              <span className="text-[10px] text-muted-foreground">{history.length} tests</span>
+            </div>
+            <div className="rounded-xl border border-border/50 divide-y divide-border/30 max-h-64 overflow-y-auto">
+              {history.map((h) => (
+                <div
+                  key={h.id}
+                  className="flex items-center gap-3 px-3 py-2 hover:bg-muted/30 cursor-pointer group"
+                  onClick={() => viewHistoryEntry(h)}
+                >
+                  <span className={`text-sm font-bold min-w-[28px] text-center ${getScoreColor(h.overallScore)}`}>{h.overallScore}</span>
+                  <div className="flex-1 min-w-0">
+                    <code className="text-[10px] font-mono truncate block">{h.url}</code>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[9px] text-muted-foreground">{h.userName}</span>
+                      <span className="text-[9px] text-muted-foreground flex items-center gap-0.5">
+                        <Clock className="h-2 w-2" />
+                        {formatDistanceToNow(new Date(h.createdAt), { addSuffix: true })}
+                      </span>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="text-[9px] capitalize shrink-0">{h.strategy}</Badge>
+                  {h.userId === user?.uid && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-red-500 shrink-0"
+                      onClick={(e) => { e.stopPropagation(); deleteEntry(h.id); }}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  )}
                 </div>
               ))}
             </div>

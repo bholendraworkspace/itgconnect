@@ -1,9 +1,9 @@
 "use client";
 import { type Employee, type SpecialAnnouncement } from "@/lib/types";
-import { parse, isToday, isFuture, isPast, differenceInDays, format } from "date-fns";
-import { Cake, Gift, Home, Baby, Car, Briefcase, Heart, PartyPopper, Plus, Pencil, Trash2 } from "lucide-react";
+import { parse, isToday, isFuture, isPast, differenceInDays, format, isSameDay } from "date-fns";
+import { Cake, Gift, Home, Baby, Car, Briefcase, Heart, PartyPopper, Plus, Pencil, Trash2, CalendarDays, UserPlus, ChevronUp, ChevronDown } from "lucide-react";
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,100 +14,288 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useEmployees, useAnnouncements } from "@/hooks/use-firestore-data";
 import { useUser } from "@/firebase";
+import { cn } from "@/lib/utils";
 
-// ─── Birthday Corner ──────────────────────────────────────────────────────────
+// ─── Avatar colors ────────────────────────────────────────────────────────────
+const avatarColors = [
+  "bg-emerald-500", "bg-orange-500", "bg-sky-500", "bg-rose-500",
+  "bg-violet-500", "bg-amber-500", "bg-teal-500", "bg-pink-500",
+  "bg-cyan-500", "bg-lime-500", "bg-indigo-500", "bg-fuchsia-500",
+];
 
-type BirthdayCardProps = {
-  title: string;
-  employees: Employee[];
-  variant: "today" | "upcoming" | "past";
-  wide?: boolean;
-};
+function getAvatarColor(name: string) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return avatarColors[Math.abs(hash) % avatarColors.length];
+}
 
-const variantConfig = {
-  today:    { icon: <PartyPopper className="h-4 w-4" />, gradient: "from-primary to-rose-400" },
-  upcoming: { icon: <Cake className="h-4 w-4" />,        gradient: "from-accent to-yellow-400" },
-  past:     { icon: <Gift className="h-4 w-4" />,        gradient: "from-violet-500 to-indigo-400" },
-};
+function getInitials(name: string) {
+  const parts = name.split(" ").filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+}
 
-export const BirthdayCard = ({ title, employees, variant, wide }: BirthdayCardProps) => {
-  const { toast } = useToast();
-  const config = variantConfig[variant];
-
+// ─── Birthday / Anniversary Avatar Card ───────────────────────────────────────
+function PersonCircle({ employee, label, onWish }: { employee: Employee; label: string; onWish?: () => void }) {
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <div className={`h-2 w-2 rounded-full bg-gradient-to-r ${config.gradient}`} />
-        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{title}</span>
+    <div className="flex flex-col items-center gap-1.5 w-20 sm:w-24">
+      <div className="relative">
+        <Avatar className={cn("h-14 w-14 sm:h-16 sm:w-16 ring-2 ring-white shadow-md", !employee.profilePhotoUrl && getAvatarColor(employee.name))}>
+          <AvatarImage src={employee.profilePhotoUrl} />
+          <AvatarFallback className="text-sm sm:text-base font-bold text-white bg-transparent">
+            {getInitials(employee.name)}
+          </AvatarFallback>
+        </Avatar>
       </div>
-      <div className="grid sm:grid-cols-2 gap-2">
-        {employees.map((employee) => (
-          <div key={employee.id} className="flex items-center justify-between rounded-xl bg-muted/40 px-3 py-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <Avatar className="h-8 w-8 shrink-0 ring-2 ring-white shadow-sm">
-                <AvatarImage src={employee.profilePhotoUrl} data-ai-hint={employee.profilePhotoHint} />
-                <AvatarFallback className="text-xs font-bold">{employee.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <div className="min-w-0">
-                <p className="text-xs font-semibold leading-none truncate">{employee.name}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {format(parse(employee.birthDate, "yyyy-MM-dd", new Date()), "MMMM do")}
-                </p>
-              </div>
-            </div>
-            <Button size="sm" variant="ghost"
-              className="h-7 shrink-0 rounded-lg text-xs font-medium hover:bg-primary/10 hover:text-primary"
-              onClick={() => toast({ title: "🎉 Wish Sent!", description: `Your birthday wish has been sent to ${employee.name}.` })}
-            >
-              <Gift className="mr-1 h-3 w-3" />
-              <span className="hidden sm:inline">Wish</span>
-            </Button>
-          </div>
-        ))}
-      </div>
+      <p className="text-xs font-semibold leading-tight text-center truncate w-full">{employee.name.split(" ")[0]}{employee.name.split(" ").length > 1 ? ".." : ""}</p>
+      {onWish ? (
+        <button onClick={onWish} className="text-[11px] font-medium text-primary hover:underline">Wish</button>
+      ) : (
+        <span className="text-[11px] text-muted-foreground">{label}</span>
+      )}
     </div>
   );
-};
+}
+
+function OverflowCircle({ count }: { count: number }) {
+  return (
+    <div className="flex flex-col items-center gap-1.5 w-20 sm:w-24">
+      <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-full border-2 border-dashed border-border flex items-center justify-center">
+        <span className="text-sm font-semibold text-muted-foreground">+{count}</span>
+      </div>
+      <p className="text-xs text-muted-foreground">more</p>
+    </div>
+  );
+}
+
+// ─── Birthday Corner (Redesigned) ─────────────────────────────────────────────
+
+type TabId = "birthdays" | "anniversaries" | "joinees";
 
 export function BirthdayCorner() {
+  const { toast } = useToast();
   const { employees } = useEmployees();
+  const [activeTab, setActiveTab] = useState<TabId>("birthdays");
+  const [expanded, setExpanded] = useState(false);
   const today = new Date();
 
-  // Normalize a stored birthDate to the current year so comparisons work year-round
+  // ─ Birthdays ─
   const thisYearBirthday = (dateStr: string) => {
     const parsed = parse(dateStr, "yyyy-MM-dd", new Date());
     return new Date(today.getFullYear(), parsed.getMonth(), parsed.getDate());
   };
 
-  const birthdaysToday    = employees.filter((e) => isToday(thisYearBirthday(e.birthDate)));
-  const upcomingBirthdays = employees.filter((e) => { const b = thisYearBirthday(e.birthDate); return isFuture(b) && differenceInDays(b, today) <= 7; }).sort((a, b) => differenceInDays(thisYearBirthday(a.birthDate), thisYearBirthday(b.birthDate)));
-  const pastBirthdays     = employees.filter((e) => { const b = thisYearBirthday(e.birthDate); return isPast(b) && !isToday(b) && differenceInDays(today, b) <= 7; }).sort((a, b) => differenceInDays(thisYearBirthday(b.birthDate), thisYearBirthday(a.birthDate)));
-  const hasAny = birthdaysToday.length > 0 || upcomingBirthdays.length > 0 || pastBirthdays.length > 0;
+  const birthdaysToday = employees.filter((e) => e.birthDate && isToday(thisYearBirthday(e.birthDate)));
+  const upcomingBirthdays = employees
+    .filter((e) => { if (!e.birthDate) return false; const b = thisYearBirthday(e.birthDate); return isFuture(b) && differenceInDays(b, today) <= 30; })
+    .sort((a, b) => differenceInDays(thisYearBirthday(a.birthDate), thisYearBirthday(b.birthDate)));
+
+  // ─ Work Anniversaries ─
+  const thisYearAnniversary = (dateStr: string) => {
+    const parsed = parse(dateStr, "yyyy-MM-dd", new Date());
+    return new Date(today.getFullYear(), parsed.getMonth(), parsed.getDate());
+  };
+
+  const anniversariesToday = employees.filter((e) => e.workAnniversary && isToday(thisYearAnniversary(e.workAnniversary)));
+  const upcomingAnniversaries = employees
+    .filter((e) => { if (!e.workAnniversary) return false; const a = thisYearAnniversary(e.workAnniversary); return isFuture(a) && differenceInDays(a, today) <= 30; })
+    .sort((a, b) => differenceInDays(thisYearAnniversary(a.workAnniversary!), thisYearAnniversary(b.workAnniversary!)));
+
+  // ─ New Joinees (joined within last 30 days) ─
+  const newJoinees = employees.filter((e) => {
+    if (!e.workAnniversary) return false;
+    const joinDate = parse(e.workAnniversary, "yyyy-MM-dd", new Date());
+    return differenceInDays(today, joinDate) >= 0 && differenceInDays(today, joinDate) <= 30 && joinDate.getFullYear() === today.getFullYear();
+  });
+
+  const birthdayCount = birthdaysToday.length;
+  const anniversaryCount = anniversariesToday.length + upcomingAnniversaries.filter((e) => {
+    const a = thisYearAnniversary(e.workAnniversary!);
+    return differenceInDays(a, today) <= 7;
+  }).length;
+  const joineeCount = newJoinees.length;
+
+  const tabs: { id: TabId; icon: React.ReactNode; label: string; count: number; color: string }[] = [
+    { id: "birthdays", icon: <Cake className="h-4 w-4" />, label: "Birthdays", count: birthdayCount + upcomingBirthdays.length, color: "text-primary" },
+    { id: "anniversaries", icon: <PartyPopper className="h-4 w-4" />, label: "Work Anniversaries", count: anniversariesToday.length + upcomingAnniversaries.length, color: "text-emerald-500" },
+    { id: "joinees", icon: <UserPlus className="h-4 w-4" />, label: "New Joinees", count: joineeCount, color: "text-blue-500" },
+  ];
+
+  const formatBirthdayLabel = (dateStr: string) => {
+    const b = thisYearBirthday(dateStr);
+    if (isToday(b)) return "Today";
+    const diff = differenceInDays(b, today);
+    if (diff === 1) return "Tomorrow";
+    return format(b, "dd MMMM");
+  };
+
+  const formatAnniversaryLabel = (dateStr: string) => {
+    const a = thisYearAnniversary(dateStr);
+    if (isToday(a)) return "Today";
+    const diff = differenceInDays(a, today);
+    if (diff === 1) return "Tomorrow";
+    return format(a, "dd MMMM");
+  };
+
+  const wish = (name: string, type: string) => {
+    toast({ title: `${type === "birthday" ? "🎉" : "🎊"} Wish Sent!`, description: `Your ${type} wish has been sent to ${name}.` });
+  };
+
+  const VISIBLE_LIMIT = 11;
+
+  // ─ Render content based on active tab ─
+  const renderContent = () => {
+    if (activeTab === "birthdays") {
+      const allBirthdays = [...birthdaysToday, ...upcomingBirthdays];
+      if (allBirthdays.length === 0) return <EmptyState icon={<Cake className="h-7 w-7" />} text="No birthdays coming up." />;
+
+      const sections: { title: string; people: { emp: Employee; label: string; isToday: boolean }[] }[] = [];
+      if (birthdaysToday.length > 0) {
+        sections.push({ title: "Birthdays today", people: birthdaysToday.map((e) => ({ emp: e, label: "Today", isToday: true })) });
+      }
+      if (upcomingBirthdays.length > 0) {
+        sections.push({ title: "Upcoming Birthdays", people: upcomingBirthdays.map((e) => ({ emp: e, label: formatBirthdayLabel(e.birthDate), isToday: false })) });
+      }
+
+      return (
+        <div className="space-y-5">
+          {sections.map((section) => {
+            const visible = expanded ? section.people : section.people.slice(0, VISIBLE_LIMIT);
+            const overflow = section.people.length - VISIBLE_LIMIT;
+            return (
+              <div key={section.title} className="space-y-3">
+                <h3 className="text-sm font-semibold text-foreground">{section.title}</h3>
+                <div className="flex flex-wrap gap-3 sm:gap-4">
+                  {visible.map(({ emp, label, isToday: isTodayBday }) => (
+                    <PersonCircle
+                      key={emp.id}
+                      employee={emp}
+                      label={label}
+                      onWish={isTodayBday ? () => wish(emp.name, "birthday") : undefined}
+                    />
+                  ))}
+                  {!expanded && overflow > 0 && <OverflowCircle count={overflow} />}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    if (activeTab === "anniversaries") {
+      const allAnniversaries = [...anniversariesToday, ...upcomingAnniversaries];
+      if (allAnniversaries.length === 0) return <EmptyState icon={<PartyPopper className="h-7 w-7" />} text="No work anniversaries coming up." />;
+
+      const sections: { title: string; people: { emp: Employee; label: string; isToday: boolean }[] }[] = [];
+      if (anniversariesToday.length > 0) {
+        sections.push({ title: "Anniversaries today", people: anniversariesToday.map((e) => ({ emp: e, label: "Today", isToday: true })) });
+      }
+      if (upcomingAnniversaries.length > 0) {
+        sections.push({ title: "Upcoming Anniversaries", people: upcomingAnniversaries.map((e) => ({ emp: e, label: formatAnniversaryLabel(e.workAnniversary!), isToday: false })) });
+      }
+
+      return (
+        <div className="space-y-5">
+          {sections.map((section) => {
+            const visible = expanded ? section.people : section.people.slice(0, VISIBLE_LIMIT);
+            const overflow = section.people.length - VISIBLE_LIMIT;
+            return (
+              <div key={section.title} className="space-y-3">
+                <h3 className="text-sm font-semibold text-foreground">{section.title}</h3>
+                <div className="flex flex-wrap gap-3 sm:gap-4">
+                  {visible.map(({ emp, label, isToday: isTodayAnn }) => (
+                    <PersonCircle
+                      key={emp.id}
+                      employee={emp}
+                      label={label}
+                      onWish={isTodayAnn ? () => wish(emp.name, "anniversary") : undefined}
+                    />
+                  ))}
+                  {!expanded && overflow > 0 && <OverflowCircle count={overflow} />}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    // New Joinees
+    if (newJoinees.length === 0) return <EmptyState icon={<UserPlus className="h-7 w-7" />} text="No new joinees this month." />;
+    const visible = expanded ? newJoinees : newJoinees.slice(0, VISIBLE_LIMIT);
+    const overflow = newJoinees.length - VISIBLE_LIMIT;
+
+    return (
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold text-foreground">Recently Joined</h3>
+        <div className="flex flex-wrap gap-3 sm:gap-4">
+          {visible.map((emp) => (
+            <PersonCircle key={emp.id} employee={emp} label={format(parse(emp.workAnniversary!, "yyyy-MM-dd", new Date()), "dd MMM")} />
+          ))}
+          {!expanded && overflow > 0 && <OverflowCircle count={overflow} />}
+        </div>
+      </div>
+    );
+  };
+
+  const currentTabPeople = activeTab === "birthdays"
+    ? birthdaysToday.length + upcomingBirthdays.length
+    : activeTab === "anniversaries"
+      ? anniversariesToday.length + upcomingAnniversaries.length
+      : newJoinees.length;
 
   return (
     <Card className="card-hover overflow-hidden border-0 shadow-md">
-      <div className="h-1 w-full bg-gradient-to-r from-pink-500 to-rose-400" />
-      <CardHeader className="flex flex-row items-center justify-between pb-3 pt-4 px-4 sm:px-5">
-        <CardTitle className="text-sm font-semibold">Birthdays</CardTitle>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-[10px]"><Cake className="mr-1 h-3 w-3" />This week</Badge>
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-pink-500 to-rose-400 text-white shadow-sm">
-            <Cake className="h-4 w-4" />
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-3">
-        {birthdaysToday.length > 0    && <BirthdayCard title="Today"    employees={birthdaysToday.slice(0, 5)}    variant="today"    wide />}
-        {upcomingBirthdays.length > 0 && <BirthdayCard title="Upcoming" employees={upcomingBirthdays.slice(0, 5)} variant="upcoming" wide />}
-        {pastBirthdays.length > 0     && <BirthdayCard title="Recent"   employees={pastBirthdays.slice(0, 5)}    variant="past"     wide />}
-        {!hasAny && (
-          <div className="rounded-xl border-2 border-dashed border-border p-6 text-center">
-            <Cake className="mx-auto h-7 w-7 text-muted-foreground/30 mb-2" />
-            <p className="text-sm text-muted-foreground">No birthdays this week.</p>
-          </div>
+      <div className="h-1 w-full bg-gradient-to-r from-pink-500 via-violet-500 to-blue-500" />
+
+      {/* Tabs */}
+      <div className="flex items-center border-b border-border/50">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => { setActiveTab(tab.id); setExpanded(false); }}
+              className={cn(
+                "flex items-center gap-2 px-4 py-3 text-xs font-medium border-b-2 transition-all -mb-px flex-1 justify-center",
+                isActive
+                  ? "border-primary text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-border/50"
+              )}
+            >
+              <span className={cn(isActive ? tab.color : "text-muted-foreground")}>{tab.icon}</span>
+              <span className="font-bold text-sm">{tab.count}</span>
+              <span className="hidden sm:inline">{tab.label}</span>
+            </button>
+          );
+        })}
+
+        {/* Collapse/Expand */}
+        {currentTabPeople > VISIBLE_LIMIT && (
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="px-3 py-3 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
         )}
+      </div>
+
+      {/* Content */}
+      <CardContent className="px-4 sm:px-5 py-4 sm:py-5">
+        {renderContent()}
       </CardContent>
     </Card>
+  );
+}
+
+function EmptyState({ icon, text }: { icon: React.ReactNode; text: string }) {
+  return (
+    <div className="rounded-xl border-2 border-dashed border-border p-6 text-center">
+      <div className="mx-auto text-muted-foreground/30 mb-2">{icon}</div>
+      <p className="text-sm text-muted-foreground">{text}</p>
+    </div>
   );
 }
 
@@ -144,7 +332,7 @@ export function SpecialAnnouncementsCorner() {
       date: new Date().toISOString(),
     });
     setOpen(false);
-    toast({ title: "🎊 Announcement Posted!", description: "Your announcement has been shared." });
+    toast({ title: "Announcement Posted!", description: "Your announcement has been shared." });
   };
 
   const openEdit = (ann: SpecialAnnouncement) => {
@@ -170,8 +358,8 @@ export function SpecialAnnouncementsCorner() {
   return (
     <Card className="card-hover overflow-hidden border-0 shadow-md flex-1">
       <div className="h-1 w-full bg-gradient-to-r from-violet-500 to-primary" />
-      <CardHeader className="pb-3 pt-4 px-4 sm:px-5 flex flex-row items-center justify-between">
-        <CardTitle className="text-sm font-semibold">Special Announcements</CardTitle>
+      <div className="pb-3 pt-4 px-4 sm:px-5 flex flex-row items-center justify-between">
+        <h3 className="text-sm font-semibold">Special Announcements</h3>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="rounded-xl bg-gradient-to-r from-violet-500 to-primary text-white hover:opacity-90 h-8">
@@ -198,7 +386,7 @@ export function SpecialAnnouncementsCorner() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </CardHeader>
+      </div>
       <CardContent className="px-4 sm:px-5 pb-4 sm:pb-5">
         {announcements.length > 0 ? (
           <div className="space-y-2 sm:space-y-3">
@@ -234,7 +422,7 @@ export function SpecialAnnouncementsCorner() {
                       </>
                     )}
                     <Button variant="ghost" size="sm" className="h-7 sm:h-8 rounded-lg text-base"
-                      onClick={() => toast({ title: "🎊 Congratulations Sent!", description: `You congratulated ${announcement.employeeName}!` })}>
+                      onClick={() => toast({ title: "Congratulations Sent!", description: `You congratulated ${announcement.employeeName}!` })}>
                       🎉
                     </Button>
                   </div>

@@ -8,6 +8,28 @@ export type Employee = {
   birthDate: string; // YYYY-MM-DD
   achievements: Omit<Achievement, 'employeeName' | 'employeePhotoUrl' | 'employeePhotoHint'>[];
   workAnniversary?: string; // YYYY-MM-DD
+  // Extended profile
+  role?: string; // e.g. "Team Lead- Mobile Apps (Android & Flutter)"
+  aboutMe?: string;
+  jobLove?: string; // "What I love about my job"
+  interests?: string; // hobbies & interests
+  // Personal details
+  firstName?: string;
+  middleName?: string;
+  lastName?: string;
+  gender?: string;
+  maritalStatus?: string;
+  bloodGroup?: string;
+  marriageDate?: string; // YYYY-MM-DD
+  nationality?: string;
+  // Contact details
+  personalEmail?: string;
+  mobileNumber?: string;
+  workNumber?: string;
+  // Work details
+  businessUnit?: string;
+  subDepartment?: string;
+  reportingManager?: string;
 };
 
 export type Achievement = {
@@ -81,6 +103,22 @@ export type Event = {
     location: string;
     organizerId: string;
     rsvps: string[]; // array of employee IDs
+};
+
+export type PageSpeedHistory = {
+  id: string;
+  url: string;
+  strategy: "mobile" | "desktop";
+  overallScore: number;
+  metrics: {
+    label: string;
+    value: string;
+    score: number;
+    description: string;
+  }[];
+  userId: string;
+  userName: string;
+  createdAt: string; // ISO 8601
 };
 
 // ─── API Collections ─────────────────────────────────────────────────────────

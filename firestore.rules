@@ -87,6 +87,14 @@ service cloud.firestore {
       allow delete: if isAuth();
     }
 
+    // ── PageSpeed History ─────────────────────────────────────────────────────
+    match /pagespeedHistory/{entryId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update: if false;
+      allow delete: if isAuth();
+    }
+
     // ── Meta (seed state tracking) ──────────────────────────────────────────
     match /_meta/{docId} {
       allow read, write: if isAuth();
