@@ -1,13 +1,13 @@
 "use client";
 import { type Employee, type SpecialAnnouncement } from "@/lib/types";
 import { parse, isToday, isFuture, isPast, differenceInDays, format } from "date-fns";
-import { Cake, Gift, Home, Baby, Car, Briefcase, Heart, PartyPopper, Plus } from "lucide-react";
+import { Cake, Gift, Home, Baby, Car, Briefcase, Heart, PartyPopper, Plus, Pencil, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -123,10 +123,12 @@ const announcementConfig: Record<SpecialAnnouncement["type"], { icon: React.Reac
 
 export function SpecialAnnouncementsCorner() {
   const { toast } = useToast();
-  const { announcements, addAnnouncement } = useAnnouncements();
+  const { announcements, addAnnouncement, updateAnnouncement, deleteAnnouncement } = useAnnouncements();
   const { employees } = useEmployees();
   const { user } = useUser();
   const [open, setOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
   const [form, setForm] = useState({ type: "car" as SpecialAnnouncement["type"] });
 
@@ -143,6 +145,26 @@ export function SpecialAnnouncementsCorner() {
     });
     setOpen(false);
     toast({ title: "🎊 Announcement Posted!", description: "Your announcement has been shared." });
+  };
+
+  const openEdit = (ann: SpecialAnnouncement) => {
+    setForm({ type: ann.type });
+    setEditId(ann.id);
+  };
+
+  const handleUpdate = async () => {
+    if (!editId) return;
+    await updateAnnouncement(editId, { type: form.type });
+    setEditId(null);
+    setForm({ type: "car" });
+    toast({ title: "Announcement Updated", description: "Your changes have been saved." });
+  };
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    await deleteAnnouncement(deleteId);
+    setDeleteId(null);
+    toast({ title: "Announcement Deleted", description: "The announcement has been removed." });
   };
 
   return (
@@ -182,6 +204,7 @@ export function SpecialAnnouncementsCorner() {
           <div className="space-y-2 sm:space-y-3">
             {(showAll ? announcements : announcements.slice(0, 2)).map((announcement) => {
               const config = announcementConfig[announcement.type];
+              const isOwner = announcement.employeeId === currentEmployee?.id;
               return (
                 <div key={announcement.id} className="flex items-center justify-between rounded-xl bg-muted/40 px-3 py-2 sm:py-3">
                   <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -199,10 +222,22 @@ export function SpecialAnnouncementsCorner() {
                       <p className="text-xs text-muted-foreground mt-1">{config.label} • {format(new Date(announcement.date), "MMM d")}</p>
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm" className="h-7 sm:h-8 shrink-0 rounded-lg text-base"
-                    onClick={() => toast({ title: "🎊 Congratulations Sent!", description: `You congratulated ${announcement.employeeName}!` })}>
-                    🎉
-                  </Button>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {isOwner && (
+                      <>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-primary" onClick={() => openEdit(announcement)}>
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-red-500" onClick={() => setDeleteId(announcement.id)}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </>
+                    )}
+                    <Button variant="ghost" size="sm" className="h-7 sm:h-8 rounded-lg text-base"
+                      onClick={() => toast({ title: "🎊 Congratulations Sent!", description: `You congratulated ${announcement.employeeName}!` })}>
+                      🎉
+                    </Button>
+                  </div>
                 </div>
               );
             })}
@@ -221,6 +256,44 @@ export function SpecialAnnouncementsCorner() {
           <p className="text-sm text-muted-foreground">No special announcements at this time.</p>
         )}
       </CardContent>
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editId} onOpenChange={(open) => { if (!open) { setEditId(null); setForm({ type: "car" }); } }}>
+        <DialogContent className="sm:max-w-sm rounded-2xl">
+          <DialogHeader><DialogTitle className="gradient-text">Edit Announcement</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label>Announcement Type</Label>
+              <Select value={form.type} onValueChange={(v) => setForm({ type: v as SpecialAnnouncement["type"] })}>
+                <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {Object.entries(announcementConfig).map(([k, v]) => (
+                    <SelectItem key={k} value={k}>{v.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditId(null)} className="rounded-xl">Cancel</Button>
+            <Button onClick={handleUpdate} className="rounded-xl bg-gradient-to-r from-violet-500 to-primary text-white hover:opacity-90">Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <Dialog open={!!deleteId} onOpenChange={(open) => { if (!open) setDeleteId(null); }}>
+        <DialogContent className="sm:max-w-sm rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Delete Announcement?</DialogTitle>
+            <DialogDescription>This action cannot be undone.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="ghost" onClick={() => setDeleteId(null)} className="rounded-xl">Cancel</Button>
+            <Button variant="destructive" onClick={handleDelete} className="rounded-xl">Delete</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

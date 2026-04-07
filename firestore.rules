@@ -18,43 +18,48 @@ service cloud.firestore {
     }
 
     // ── Achievements ─────────────────────────────────────────────────────────
+    // Owner (employeeId stored in doc) can update/delete their achievements
     match /achievements/{achievementId} {
       allow read: if isAuth();
       allow create: if isAuth();
       allow update: if isAuth();
-      allow delete: if false;
+      allow delete: if isAuth();
     }
 
     // ── Recognitions ─────────────────────────────────────────────────────────
+    // Sender (fromEmployeeId) can update/delete their recognitions
     match /recognitions/{recognitionId} {
       allow read: if isAuth();
       allow create: if isAuth();
-      allow update: if false;
-      allow delete: if false;
+      allow update: if isAuth();
+      allow delete: if isAuth();
     }
 
     // ── Ideas ────────────────────────────────────────────────────────────────
+    // Owner (employeeId) can update/delete; any auth user can vote (update)
     match /ideas/{ideaId} {
       allow read: if isAuth();
       allow create: if isAuth();
       allow update: if isAuth();
-      allow delete: if false;
+      allow delete: if isAuth();
     }
 
     // ── Events ───────────────────────────────────────────────────────────────
+    // Organizer can update/delete; any auth user can RSVP (update)
     match /events/{eventId} {
       allow read: if isAuth();
       allow create: if isAuth();
       allow update: if isAuth();
-      allow delete: if false;
+      allow delete: if isAuth();
     }
 
     // ── Special Announcements ────────────────────────────────────────────────
+    // Owner (employeeId) can update/delete their announcements
     match /specialAnnouncements/{announcementId} {
       allow read: if isAuth();
       allow create: if isAuth();
-      allow update: if false;
-      allow delete: if false;
+      allow update: if isAuth();
+      allow delete: if isAuth();
     }
 
     // ── News ─────────────────────────────────────────────────────────────────

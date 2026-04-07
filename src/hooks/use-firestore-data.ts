@@ -80,7 +80,15 @@ export function useAchievements() {
     await addDoc(collection(db, "achievements"), achievement);
   };
 
-  return { achievements, loading, addAchievement };
+  const updateAchievement = async (id: string, data: Partial<Omit<Achievement, "id">>) => {
+    await updateDoc(doc(db, "achievements", id), data);
+  };
+
+  const deleteAchievement = async (id: string) => {
+    await deleteDoc(doc(db, "achievements", id));
+  };
+
+  return { achievements, loading, addAchievement, updateAchievement, deleteAchievement };
 }
 
 // ─── Recognitions ─────────────────────────────────────────────────────────────
@@ -102,7 +110,15 @@ export function useRecognitions() {
     await addDoc(collection(db, "recognitions"), recognition);
   };
 
-  return { recognitions, loading, addRecognition };
+  const updateRecognition = async (id: string, data: Partial<Omit<Recognition, "id">>) => {
+    await updateDoc(doc(db, "recognitions", id), data);
+  };
+
+  const deleteRecognition = async (id: string) => {
+    await deleteDoc(doc(db, "recognitions", id));
+  };
+
+  return { recognitions, loading, addRecognition, updateRecognition, deleteRecognition };
 }
 
 // ─── Ideas ────────────────────────────────────────────────────────────────────
@@ -132,7 +148,15 @@ export function useIdeas() {
     await addDoc(collection(db, "ideas"), { ...idea, votes: 0, votedBy: [] });
   };
 
-  return { ideas, loading, vote, addIdea };
+  const updateIdea = async (id: string, data: Partial<Omit<Idea, "id">>) => {
+    await updateDoc(doc(db, "ideas", id), data);
+  };
+
+  const deleteIdea = async (id: string) => {
+    await deleteDoc(doc(db, "ideas", id));
+  };
+
+  return { ideas, loading, vote, addIdea, updateIdea, deleteIdea };
 }
 
 // ─── Events ───────────────────────────────────────────────────────────────────
@@ -161,7 +185,15 @@ export function useEvents() {
     await addDoc(collection(db, "events"), event);
   };
 
-  return { events, loading, rsvp, addEvent };
+  const updateEvent = async (id: string, data: Partial<Omit<Event, "id">>) => {
+    await updateDoc(doc(db, "events", id), data);
+  };
+
+  const deleteEvent = async (id: string) => {
+    await deleteDoc(doc(db, "events", id));
+  };
+
+  return { events, loading, rsvp, addEvent, updateEvent, deleteEvent };
 }
 
 // ─── Special Announcements ────────────────────────────────────────────────────
@@ -183,7 +215,15 @@ export function useAnnouncements() {
     await addDoc(collection(db, "specialAnnouncements"), announcement);
   };
 
-  return { announcements, loading, addAnnouncement };
+  const updateAnnouncement = async (id: string, data: Partial<Omit<SpecialAnnouncement, "id">>) => {
+    await updateDoc(doc(db, "specialAnnouncements", id), data);
+  };
+
+  const deleteAnnouncement = async (id: string) => {
+    await deleteDoc(doc(db, "specialAnnouncements", id));
+  };
+
+  return { announcements, loading, addAnnouncement, updateAnnouncement, deleteAnnouncement };
 }
 
 // ─── News ─────────────────────────────────────────────────────────────────────

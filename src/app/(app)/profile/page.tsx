@@ -23,7 +23,7 @@ export default function ProfilePage() {
 
   const [sheetOpen, setSheetOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ name: "", department: "" });
+  const [form, setForm] = useState({ name: "", department: "", birthDate: "", workAnniversary: "", profilePhotoUrl: "" });
 
   const isLoading = empLoading || achLoading || recLoading;
 
@@ -39,6 +39,9 @@ export default function ProfilePage() {
     setForm({
       name: currentEmployee?.name || "",
       department: currentEmployee?.department || "",
+      birthDate: currentEmployee?.birthDate || "",
+      workAnniversary: currentEmployee?.workAnniversary || "",
+      profilePhotoUrl: currentEmployee?.profilePhotoUrl || "",
     });
     setSheetOpen(true);
   };
@@ -50,6 +53,9 @@ export default function ProfilePage() {
       await updateEmployee(currentEmployee.id, {
         name: form.name,
         department: form.department,
+        birthDate: form.birthDate,
+        workAnniversary: form.workAnniversary,
+        profilePhotoUrl: form.profilePhotoUrl,
       });
       toast({ title: "Profile Updated", description: "Your changes have been saved." });
       setSheetOpen(false);
@@ -163,6 +169,39 @@ export default function ProfilePage() {
                         value={form.department}
                         onChange={(e) => setForm((f) => ({ ...f, department: e.target.value }))}
                         placeholder="e.g. Engineering, Marketing…"
+                        className="rounded-xl h-11"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="birthDate" className="text-sm font-medium">Birthday</Label>
+                      <Input
+                        id="birthDate"
+                        type="date"
+                        value={form.birthDate}
+                        onChange={(e) => setForm((f) => ({ ...f, birthDate: e.target.value }))}
+                        className="rounded-xl h-11"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="workAnniversary" className="text-sm font-medium">Work Anniversary</Label>
+                      <Input
+                        id="workAnniversary"
+                        type="date"
+                        value={form.workAnniversary}
+                        onChange={(e) => setForm((f) => ({ ...f, workAnniversary: e.target.value }))}
+                        className="rounded-xl h-11"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="photoUrl" className="text-sm font-medium">Profile Photo URL</Label>
+                      <Input
+                        id="photoUrl"
+                        value={form.profilePhotoUrl}
+                        onChange={(e) => setForm((f) => ({ ...f, profilePhotoUrl: e.target.value }))}
+                        placeholder="https://..."
                         className="rounded-xl h-11"
                       />
                     </div>
