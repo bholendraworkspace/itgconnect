@@ -4,7 +4,7 @@
 
 - Secure User Authentication: Enable user signup and login through Google OAuth, with subsequent profile completion for personal details, photo, and optional department information.
 - Personalized Employee Dashboard: Display upcoming, today's, and past employee birthdays, with the functionality for users to send personalized wishes to colleagues.
-- Self-Managed Employee Profiles: Allow users to view and update their personal details, including profile photo, and manage their individual achievements.
+- Self-Managed Employee Profiles: Allow users to view and update their personal details, including profile photo, manage their individual achievements, and track profile completion via a dedicated completion badge on their avatar.
 - Organization-Wide Achievement Feed: A dynamic, centralized feed showcasing recent accomplishments and achievements from employees across the entire organization.
 - Office News & Events Hub: A dedicated section for administrators to post and employees to browse internal events, announcements, and company activities.
 - Essential Developer Tool Suite: Provide a robust set of 20+ practical developer utilities such as a JSON viewer, HTML viewer, Base64 encoder/decoder, Timestamp converter, PageSpeed Insights checker, API Collection manager, CSS Minifier, JWT Decoder, Hash Generator, and Markdown Preview.

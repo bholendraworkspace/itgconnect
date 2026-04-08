@@ -24,7 +24,7 @@ A modern internal employee hub built with Next.js, Firebase, and Tailwind CSS. D
 | **News & Events** | Company announcements with featured images |
 | **Feedback** | Submit suggestions, bug reports, or praise — anonymously or named |
 | **Developer Tools** | JSON Viewer, HTML Viewer, Base64 Tool, Timestamp Converter, AMP Validator, API Collection, Color Converter, CSS Gradient Generator, CSS Minifier, Hash Generator, HTML Formatter, JWT Decoder, Markdown Preview, PageSpeed Insights, Password Generator, Purge URL, Schema Checker, Text Diff, URL Encoder, UUID Generator |
-| **Profile** | User profile with achievements and stats |
+| **Profile** | User profile with achievements, stats, and an avatar completion badge |
 
 ---
 
