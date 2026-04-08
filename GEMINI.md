@@ -24,7 +24,7 @@ All shared TypeScript types are housed in `src/lib/types.ts` (e.g., `Employee`, 
 
 ### UI Components
 - `src/components/ui/`: shadcn/ui primitives. **Do not modify these directly; regenerate via shadcn CLI.**
-- `src/components/dashboard/`: Core feature components (corners, achievements, events, etc.).
+- `src/components/dashboard/`: Core feature components (corners, achievements, ideas with aligned like/unlike buttons, events, etc.).
 - `src/components/tools/`: 20+ Developer tool components (JSON viewer, PageSpeed Insights, Hash Generator, API Collection, etc.).
 
 ## Building and Running
@@ -69,6 +69,7 @@ npx firebase-tools@latest deploy --only hosting --project YOUR_PROJECT_ID
 
 - **Firebase Integration:** Firebase credentials and configuration are maintained in `src/firebase/config.ts`. The project utilizes custom React hooks (`use-firestore-data.ts`) to interact with Firestore collections like `employees`, `achievements`, `ideas`, etc. When modifying data structures, ensure corresponding types in `src/lib/types.ts` are updated.
 - **Styling & UI:** The project strongly relies on Tailwind CSS and shadcn/ui. Stick to these tools for styling and use existing components (found in `src/components/ui/`) instead of creating custom alternatives when possible.
+- **UserNav Avatar:** The header user avatar (`src/components/user-nav.tsx`) features a circular SVG progress ring showing profile completion percentage, with a centered avatar and a percentage badge below. The ring turns emerald-green at 100%.
 - **Design Language:** 
   - Primary visual elements utilize a dynamic linear gradient (`103deg, #FF006A 0%, #FF7A00 100%`).
   - Background color is a light desaturated blue-grey (`#EBEEF6`).

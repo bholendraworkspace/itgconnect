@@ -75,7 +75,7 @@ src/
 │   ├── tools/                   # Developer tool components (JSON viewer, Base64, etc.)
 │   ├── ui/                      # shadcn/ui primitives (do not modify manually)
 │   ├── app-nav.tsx              # Sidebar navigation
-│   └── user-nav.tsx             # Header user dropdown
+│   └── user-nav.tsx             # Header user dropdown with circular profile completion ring
 ├── firebase/                    # Firebase init & React providers
 │   ├── config.ts                # Firebase credentials (hardcoded)
 │   ├── provider.tsx             # FirebaseContext + useFirebase/useAuth/useUser/useFirestore
@@ -142,7 +142,7 @@ All Firestore collections are accessed through dedicated hooks in `src/hooks/use
 ### UI Components
 
 - **`src/components/ui/`** — shadcn/ui primitives (Radix UI + Tailwind). Do not modify manually; regenerate via shadcn CLI.
-- **`src/components/dashboard/`** — Feature components for dashboard sections.
+- **`src/components/dashboard/`** — Feature components for dashboard sections (ideas with aligned like/unlike buttons, etc.).
 - **`src/components/tools/`** — 20+ Developer tools (JSON Viewer, PageSpeed Insights, API Collection, Hash Generator, Base64 Tool, API Explainer, etc.).
 
 ### TypeScript Types
@@ -172,12 +172,12 @@ All shared types are in `src/lib/types.ts`:
 | **Special Announcements** | Post and celebrate life milestones (new car, home, baby, marriage, work anniversary) |
 | **Achievements** | Company-wide wall of fame |
 | **Recognition** | Peer-to-peer shout-outs with a "Give Recognition" dialog |
-| **Ideas Corner** | Submit ideas and vote (one vote per user, tracked in Firestore) |
+| **Ideas Corner** | Submit ideas with aligned like/unlike voting buttons (one vote per user, tracked in Firestore) |
 | **Events** | Create events and RSVP with real-time attendee count |
 | **News & Events** | Company announcements with featured images |
 | **Feedback** | Submit suggestions, bug reports, or praise — anonymously or named |
 | **Developer Tools** | JSON Viewer, HTML Viewer, Base64 Tool, Timestamp Converter, AMP Validator, API Collection, Color Converter, CSS Gradient Generator, CSS Minifier, Hash Generator, HTML Formatter, JWT Decoder, Markdown Preview, PageSpeed Insights, Password Generator, Purge URL, Schema Checker, Text Diff, URL Encoder, UUID Generator, API Explainer (AI-powered) |
-| **Profile** | User profile with achievements, stats, and an avatar completion badge |
+| **Profile** | User profile with achievements, stats, and a circular progress ring showing profile completion percentage around the avatar |
 
 ---
 

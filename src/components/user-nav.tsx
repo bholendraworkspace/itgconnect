@@ -44,17 +44,35 @@ export function UserNav() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-          <div className="relative">
-            <Avatar className="h-10 w-10 border-2 border-primary/50">
-            {user.photoURL && <AvatarImage src={user.photoURL} alt={user.displayName || ""} />}
-            <AvatarFallback>
-              {user.displayName ? user.displayName.charAt(0) : user.email?.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+        <Button variant="ghost" className="relative h-14 w-14 rounded-full p-0">
+          <div className="relative flex items-center justify-center h-14 w-14">
+            {/* Circular progress ring */}
+            <svg className="absolute inset-0 h-14 w-14 -rotate-90" viewBox="0 0 56 56">
+              <circle cx="28" cy="28" r="25" fill="none" stroke="currentColor" className="text-muted/20" strokeWidth="3" />
+              {currentEmployee && (
+                <circle
+                  cx="28" cy="28" r="25" fill="none"
+                  className={completion >= 100 ? "text-emerald-500" : "text-primary"}
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeDasharray={`${2 * Math.PI * 25}`}
+                  strokeDashoffset={`${2 * Math.PI * 25 * (1 - completion / 100)}`}
+                  style={{ transition: "stroke-dashoffset 0.5s ease" }}
+                />
+              )}
+            </svg>
+            {/* Centered avatar */}
+            <Avatar className="h-9 w-9 absolute">
+              {user.photoURL && <AvatarImage src={user.photoURL} alt={user.displayName || ""} />}
+              <AvatarFallback>
+                {user.displayName ? user.displayName.charAt(0) : user.email?.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            {/* Percentage badge */}
             {currentEmployee && (
-              <span 
-                className={`absolute -bottom-1 -right-1.5 flex h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full px-[0.2rem] text-[9px] font-bold text-white shadow-sm ring-2 ring-background z-10 ${completion >= 100 ? "bg-emerald-500" : "bg-primary"}`}
+              <span
+                className={`absolute -bottom-0.5 left-1/2 -translate-x-1/2 flex items-center justify-center rounded-full px-1 text-[8px] font-bold text-white shadow-sm ring-1 ring-background ${completion >= 100 ? "bg-emerald-500" : "bg-primary"}`}
               >
                 {completion}%
               </span>

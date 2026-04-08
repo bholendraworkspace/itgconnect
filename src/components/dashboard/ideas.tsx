@@ -155,7 +155,7 @@ export function IdeasCorner() {
                     <div className="h-full rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 transition-all duration-500" style={{ width: `${votePercent}%` }} />
                   </div>
                 </CardContent>
-                <CardFooter className="px-4 pb-4 gap-2">
+                <CardFooter className="px-4 pb-4 flex items-center gap-2">
                   <Button size="sm" variant={hasVoted ? "default" : "outline"}
                     className={`flex-1 rounded-xl text-xs font-semibold transition-all duration-200 ${hasVoted ? "bg-gradient-to-r from-yellow-400 to-amber-500 text-white border-0 shadow-sm" : "hover:border-primary/30 hover:text-primary"}`}
                     onClick={() => handleVote(idea.id, "up")}>
@@ -164,9 +164,10 @@ export function IdeasCorner() {
                   </Button>
                   {hasVoted && (
                     <Button size="sm" variant="outline"
-                      className="rounded-xl text-xs font-semibold border-red-200 text-red-500 hover:bg-red-50 hover:border-red-300"
+                      className="flex-1 rounded-xl text-xs font-semibold border-red-200 text-red-500 hover:bg-red-50 hover:border-red-300"
                       onClick={() => handleVote(idea.id, "down")}>
-                      <ThumbsDown className="h-3.5 w-3.5" />
+                      <ThumbsDown className="mr-1.5 h-3.5 w-3.5" />
+                      Unlike
                     </Button>
                   )}
                 </CardFooter>

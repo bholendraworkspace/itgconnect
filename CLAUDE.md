@@ -58,8 +58,12 @@ All Firestore collections are accessed through dedicated hooks with real-time `o
 ### UI Components
 
 - `src/components/ui/` — shadcn/ui primitives (Radix UI + Tailwind). Do not modify these directly; regenerate via shadcn CLI.
-- `src/components/dashboard/` — Feature components for dashboard sections (corners, achievements, ideas, events)
+- `src/components/dashboard/` — Feature components for dashboard sections (corners, achievements, ideas with aligned like/unlike buttons, events)
 - `src/components/tools/` — 20+ Developer tool components (JSON viewer, Base64, Timestamp, PageSpeed Insights, API Collection, etc.)
+
+### UserNav (`src/components/user-nav.tsx`)
+
+The header avatar displays a circular SVG progress ring around the user's profile image showing profile completion percentage. A small percentage badge is centered below the avatar. The ring turns emerald-green at 100% completion.
 
 ### Types
 

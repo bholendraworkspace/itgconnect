@@ -19,12 +19,12 @@ A modern internal employee hub built with Next.js, Firebase, and Tailwind CSS. D
 | **Special Announcements** | Post and celebrate life milestones (new car, home, baby, marriage, work anniversary) |
 | **Achievements** | Company-wide wall of fame |
 | **Recognition** | Peer-to-peer shout-outs with a Give Recognition dialog |
-| **Ideas Corner** | Submit ideas and vote (one vote per user, tracked in Firestore) |
+| **Ideas Corner** | Submit ideas with aligned like/unlike voting buttons (one vote per user, tracked in Firestore) |
 | **Events** | Create events and RSVP with real-time attendee count |
 | **News & Events** | Company announcements with featured images |
 | **Feedback** | Submit suggestions, bug reports, or praise — anonymously or named |
 | **Developer Tools** | JSON Viewer, HTML Viewer, Base64 Tool, Timestamp Converter, AMP Validator, API Collection, Color Converter, CSS Gradient Generator, CSS Minifier, Hash Generator, HTML Formatter, JWT Decoder, Markdown Preview, PageSpeed Insights, Password Generator, Purge URL, Schema Checker, Text Diff, URL Encoder, UUID Generator |
-| **Profile** | User profile with achievements, stats, and an avatar completion badge |
+| **Profile** | User profile with achievements, stats, and a circular progress ring showing profile completion percentage around the avatar |
 
 ---
 
@@ -112,7 +112,7 @@ src/
 │   ├── tools/               # Developer tool components
 │   ├── ui/                  # shadcn/ui primitives
 │   ├── app-nav.tsx          # Sidebar navigation
-│   └── user-nav.tsx         # Header user dropdown
+│   └── user-nav.tsx         # Header user dropdown with circular profile completion ring
 ├── firebase/                # Firebase init & React providers
 ├── hooks/
 │   └── use-firestore-data.ts  # Real-time hooks for all Firestore collections
