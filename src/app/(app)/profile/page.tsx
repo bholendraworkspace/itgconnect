@@ -12,8 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { format } from "date-fns";
 import {
   Award, Edit, Mail, Building, Star, CalendarDays, Loader2, UserRound, Save,
-  Phone, Globe, Heart, Briefcase, User, MapPin, CheckCircle2, AlertCircle,
-  Sparkles, ChevronRight,
+  Phone, Globe, Heart, Briefcase, User, MapPin,
+  Sparkles,
 } from "lucide-react";
 import React, { useState, useMemo } from "react";
 import { useUser } from "@/firebase";
@@ -21,35 +21,6 @@ import { useEmployees, useAchievements, useRecognitions } from "@/hooks/use-fire
 import { useToast } from "@/hooks/use-toast";
 import { cn, calculateCompletion } from "@/lib/utils";
 import type { Employee } from "@/lib/types";
-
-// ─── Profile Completion ──────────────────────────────────────────────────────
-
-
-
-function ProfileCompletionCircle({ percentage }: { percentage: number }) {
-  const size = 100;
-  const strokeWidth = 6;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (percentage / 100) * circumference;
-  const color = percentage >= 100 ? "stroke-emerald-500" : percentage >= 60 ? "stroke-amber-500" : "stroke-red-500";
-  const textColor = percentage >= 100 ? "text-emerald-500" : percentage >= 60 ? "text-amber-500" : "text-red-500";
-
-  return (
-    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="currentColor" strokeWidth={strokeWidth} className="text-muted/20" />
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" strokeWidth={strokeWidth} strokeLinecap="round"
-          strokeDasharray={circumference} strokeDashoffset={offset} className={color}
-          style={{ transition: "stroke-dashoffset 0.8s ease" }}
-        />
-      </svg>
-      <div className="absolute flex flex-col items-center">
-        <span className={cn("text-xl font-bold", textColor)}>{percentage}%</span>
-      </div>
-    </div>
-  );
-}
 
 // ─── Detail Row Helper ───────────────────────────────────────────────────────
 
@@ -186,12 +157,31 @@ export default function ProfilePage() {
 
         <CardContent className="px-4 sm:px-6 pb-6">
           <div className="flex items-end justify-between -mt-16 sm:-mt-20 mb-4">
-            <Avatar className="h-24 w-24 sm:h-32 sm:w-32 border-4 border-card shadow-xl ring-2 ring-primary/20">
-              <AvatarImage src={currentEmployee.profilePhotoUrl} />
-              <AvatarFallback className="text-3xl sm:text-4xl font-bold bg-gradient-to-br from-primary to-accent text-white">
-                {currentEmployee.name.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative">
+              {/* SVG progress ring around avatar */}
+              <svg
+                className="absolute -inset-[5px] sm:-inset-[6px] -rotate-90 z-10 drop-shadow-sm"
+                viewBox="0 0 140 140"
+                fill="none"
+              >
+                <circle cx="70" cy="70" r="66" strokeWidth="5" className="stroke-gray-300 dark:stroke-gray-600" />
+                <circle
+                  cx="70" cy="70" r="66"
+                  strokeWidth="5"
+                  strokeLinecap="round"
+                  className={completion.percentage >= 100 ? "stroke-emerald-500" : "stroke-primary"}
+                  strokeDasharray={2 * Math.PI * 66}
+                  strokeDashoffset={2 * Math.PI * 66 * (1 - completion.percentage / 100)}
+                  style={{ transition: "stroke-dashoffset 0.6s ease" }}
+                />
+              </svg>
+              <Avatar className="h-24 w-24 sm:h-32 sm:w-32 border-4 border-card shadow-xl">
+                <AvatarImage src={currentEmployee.profilePhotoUrl} />
+                <AvatarFallback className="text-3xl sm:text-4xl font-bold bg-gradient-to-br from-primary to-accent text-white">
+                  {currentEmployee.name.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+            </div>
 
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
               <SheetTrigger asChild>
@@ -443,39 +433,6 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
-      {/* Profile Completion Card */}
-      <Card className="overflow-hidden border-0 shadow-md">
-        <div className={cn("h-1 w-full bg-gradient-to-r", completion.percentage >= 100 ? "from-emerald-500 to-green-400" : "from-amber-500 to-orange-400")} />
-        <CardContent className="px-4 sm:px-6 py-5">
-          <div className="flex items-center gap-5">
-            <ProfileCompletionCircle percentage={completion.percentage} />
-            <div className="flex-1">
-              {completion.percentage >= 100 ? (
-                <>
-                  <div className="flex items-center gap-2 mb-1">
-                    <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                    <h3 className="text-base font-bold text-emerald-600">Profile completed successfully!</h3>
-                  </div>
-                  <p className="text-sm text-muted-foreground">Great job! Your profile is fully up to date.</p>
-                </>
-              ) : (
-                <>
-                  <div className="flex items-center gap-2 mb-1">
-                    <AlertCircle className="h-5 w-5 text-amber-500" />
-                    <h3 className="text-base font-bold">Complete your profile</h3>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Missing: {completion.missing.slice(0, 3).join(", ")}{completion.missing.length > 3 ? ` +${completion.missing.length - 3} more` : ""}
-                  </p>
-                  <Button size="sm" variant="outline" className="rounded-xl text-xs h-8 gap-1" onClick={() => openSheet("about")}>
-                    Complete Now <ChevronRight className="h-3 w-3" />
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Introduce Yourself / About */}
       <Card className="overflow-hidden border-0 shadow-md">
