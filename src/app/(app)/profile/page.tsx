@@ -19,39 +19,12 @@ import React, { useState, useMemo } from "react";
 import { useUser } from "@/firebase";
 import { useEmployees, useAchievements, useRecognitions } from "@/hooks/use-firestore-data";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
+import { cn, calculateCompletion } from "@/lib/utils";
 import type { Employee } from "@/lib/types";
 
 // ─── Profile Completion ──────────────────────────────────────────────────────
 
-const PROFILE_FIELDS: { key: keyof Employee; label: string; weight: number }[] = [
-  { key: "name", label: "Full Name", weight: 1 },
-  { key: "email", label: "Email", weight: 1 },
-  { key: "department", label: "Department", weight: 1 },
-  { key: "profilePhotoUrl", label: "Profile Photo", weight: 1 },
-  { key: "birthDate", label: "Date of Birth", weight: 1 },
-  { key: "role", label: "Role / Designation", weight: 1 },
-  { key: "aboutMe", label: "About Me", weight: 1 },
-  { key: "jobLove", label: "What I love about my job", weight: 1 },
-  { key: "interests", label: "Interests & Hobbies", weight: 1 },
-  { key: "mobileNumber", label: "Mobile Number", weight: 1 },
-  { key: "gender", label: "Gender", weight: 1 },
-  { key: "workAnniversary", label: "Work Anniversary", weight: 1 },
-];
 
-function calculateCompletion(emp: Employee): { percentage: number; missing: string[] } {
-  const missing: string[] = [];
-  let filled = 0;
-  for (const f of PROFILE_FIELDS) {
-    const val = emp[f.key];
-    if (val && String(val).trim() && val !== "1990-01-01") {
-      filled += f.weight;
-    } else {
-      missing.push(f.label);
-    }
-  }
-  return { percentage: Math.round((filled / PROFILE_FIELDS.length) * 100), missing };
-}
 
 function ProfileCompletionCircle({ percentage }: { percentage: number }) {
   const size = 100;
