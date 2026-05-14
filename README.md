@@ -1,6 +1,6 @@
 # ITG Connect
 
-A modern internal employee hub built with Next.js, Firebase, and Tailwind CSS. Designed to help ITG employees connect, celebrate achievements, share ideas, and stay informed — all in one beautifully designed platform.
+A modern internal employee hub built with Next.js, Firebase, and Tailwind CSS. Designed to help ITG employees connect, celebrate achievements, share ideas, and stay informed — all in one beautifully designed.
 
 ## Live Site
 
